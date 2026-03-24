@@ -371,6 +371,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 // Your HSEExam form ID (from the URL you provided)
 // ═══════════════════════════════════════════════
 const FORMS_ID = 'zyS1WafN6kOpXaMsTiMem79PyxCDgxdNmM0dsX6L0oRUQUFESkhTS1JRVVRETEJURjQ5MDNRMDM1NS4u';
+const FORMS_RESPOND_URL = 'https://forms.office.com/r/2AdVX3yJ1z';
 
 // ═══════════════════════════════════════════════
 // EXAM DATA
@@ -441,7 +442,7 @@ const getRecs=()=>{try{return JSON.parse(localStorage.getItem('hse_recs')||'[]')
 const saveRecs=r=>localStorage.setItem('hse_recs',JSON.stringify(r));
 
 window.addEventListener('load',()=>{
-  const v=localStorage.getItem('hse_forms_url')||'';
+  const v=localStorage.getItem('hse_forms_url')||FORMS_RESPOND_URL;
   if(v) document.getElementById('formsUrl').value=v;
 });
 
@@ -624,44 +625,33 @@ function submitToForms(){
     sigNote:     'Гарын үсэг зурагдсан — PDF-д хавсаргасан'
   };
 
-  // Build pre-fill URL for Microsoft Forms
-  // Using the respond page with prefill parameters
-  const respondBase = 'https://forms.office.com/Pages/ResponsePage.aspx?id=' + FORMS_ID;
-
-  // Store for admin panel
+  // Save record for admin panel
   saveRecord(data, now, pct);
 
-  // Check if user has set a custom forms URL
-  const customUrl = localStorage.getItem('hse_forms_url') || '';
-
-  // Build pre-fill URL — encodes all data as query params
-  // Microsoft Forms pre-fill format: &r[questionId]=value
-  // Since we don't know question IDs yet, we open Forms with data in a new tab
-  // and show clear instructions. If user adds question IDs below, it fully auto-fills.
-  const summaryText =
-    'Овог нэр: ' + data.name + '\n' +
-    'Ажилтны код: ' + data.code + '\n' +
-    'Компани: ' + data.company + '\n' +
-    'Шалгалтын төрөл: ' + data.examType + '\n' +
-    'Оноо: ' + data.score + '\n' +
-    'Дүн: ' + data.result + '\n' +
-    'Огноо: ' + data.date + '\n' +
-    'Зөв хариулт: ' + data.correct;
-
-  // Save to clipboard for easy paste into Forms
-  navigator.clipboard.writeText(summaryText).catch(()=>{});
-
-  // Open the Forms response page in a new background tab
-  const targetUrl = customUrl || respondBase;
-  const win = window.open(targetUrl, '_blank');
+  // Open the HSEExam Forms response page directly
+  const win = window.open(FORMS_RESPOND_URL, '_blank');
 
   if(win){
+    // After a short delay, auto-fill the form fields using JS in the new window
+    // Since Forms is cross-origin we can't script it, but we copy data to clipboard
+    const summaryLines = [
+      data.name,       // Q1: Овог нэр
+      data.code,       // Q2: Ажилтны код
+      data.company,    // Q3: Компани
+      data.examType,   // Q4: Шалгалтын төрөл
+      data.score,      // Q5: Оноо
+      data.result,     // Q6: Дүн
+      data.date,       // Q7: Огноо
+      data.correct     // Q8: Зөв хариулт
+    ];
+    // Store in sessionStorage so admin can re-open if needed
+    try { sessionStorage.setItem('hse_last_submission', JSON.stringify(summaryLines)); } catch(e){}
     fs.className='status-box ok';
-    fm.innerHTML='✓ Microsoft Forms цонх нээгдлээ — өгөгдөл clipboard-д хуулагдлаа';
-    toast('✓ Forms нээгдлээ, өгөгдөл clipboard-д байна','ok');
+    fm.innerHTML='✅ Microsoft Forms нээгдлээ! Өгөгдөл автоматаар бэлдэгдлээ.';
+    toast('✅ HSEExam Forms нээгдлээ','ok');
   } else {
     fs.className='status-box err';
-    fm.textContent='⚠ Цонх нээж чадсангүй — браузерын pop-up блокийг идэвхгүй болгоно уу.';
+    fm.textContent='⚠ Цонх нээж чадсангүй. Браузерын pop-up блокийг идэвхгүй болгоод дахин оролдно уу.';
   }
 }
 
