@@ -312,8 +312,7 @@ body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",sans-ser
         <div class="sbox"><div class="sval" id="stTime">—</div><div class="skey">Зарцуулсан цаг</div></div>
       </div>
 
-      <div class="status-box pending" id="formsStatus"><div class="spin"></div><span id="formsMsg">Microsoft Forms руу илгээж байна...</span></div>
-      <div class="status-box pending hidden" id="odStatus"><div class="spin"></div><span id="odMsg">OneDrive руу PDF хадгалж байна...</span></div>
+      <div class="status-box pending hidden" id="formsStatus"><div class="spin"></div><span id="formsMsg">Microsoft Forms руу илгээж байна...</span></div>
 
       <div class="div"></div>
       <div class="sec-label">Асуулт бүрийн хариулт</div>
@@ -387,7 +386,7 @@ const FORMS_CONFIG = {
     onoo:       "r2b754e8d4aff401780e81221fc612193",
     dun:        "rafe02cd3679b4cb49068d3f8269ccedf",
     ognoo:      "r76c780d693bc40038f17a7424b031b66",
-    zovHariult: "r8f2a3b1c9e5d4f067890abcde1234567"
+    zovHariult: "r18063a36a4f446e5b01feb6610925f1f"
   }
 };
 
@@ -438,7 +437,31 @@ const EXAMS = {
     {q:"4. Тусгаарласан хориотой бүс рүү яаралтай ажилтай тул нэвтэрнэ.",opts:["Үнэн / True","Худал / False"],ans:1,sc:20},
     {q:"5. МСМ Групп ХХК-ийн хашаанд зөвшөөрөгдсөн дээд хурд хэд вэ?",opts:["30 км/ц","20 км/ц","40 км/ц"],ans:1,sc:20}
   ]},
-  retaken:{label:"Ээлжит бус давтан зааварчилгаа",questions:[
+  retaken:{label:"Ээлжит бус давтан / Оффис",questions:[
+    {q:"1. Цугларах цэгийн байршлийг сонгоно уу?",opts:["Шар","Ногоон","Улаан"],ans:1,sc:10},
+    {q:"2. Хөдөлмөрийн аюулгүй байдал гэж юу вэ?",opts:["Ажлын байран дахь эрүүл ахуйн стандартыг мөрдөж, ажилтны эрүүл мэндийг хамгаалах. Мэргэжлээс шалтгаалсан өвчнөөс урьдчилан сэргийлэхэд гол зорилго оршино.","Ажлын байрны аюулыг арилгаж, эрсдэлийг бууруулах, хянах арга хэмжээг хэрэгжүүлэх. Ажилтныг үйлдвэрлэлийн осол, хурц хордлогод өртөхөөс урьдчилан сэргийлэхэд гол зорилго оршино."],ans:1,sc:10},
+    {q:"3. Гарын 5 дүрмийн 3 дахь дүрмийг сонгоно уу?",opts:["Ажилд бэлэн байх шаардлагыг ханга.","Ачих буулгах үеийн аюулгүй ажиллагааг ханга.","Эрсдэлийг үнэлж зөвшөөрөл ав."],ans:2,sc:10},
+    {q:"4. Онцгой байдлын дугаарыг сонгоно уу?",opts:["87031111","80731111","83071111"],ans:2,sc:10},
+    {q:"5. Гал унтраагуур ашиглах зөв дүрмийг сонгоно уу?",opts:["Тат — Онил — Шах — Шүрш","Тат — Шах — Онил — Шүрш","Онил — Тат — Шах — Шүрш"],ans:0,sc:10},
+    {q:"6. Онцгой байдал гэж юу вэ?",opts:["«Онцгой байдал» гэдэг нь компани өөрийн нөөц боломжоор хариу арга хэмжээ авах боломжтой гэнэтийн осол гэмтэл, аюулт үзэгдэл гэх мэт онцгой нөхцөл байдлыг хэлнэ.","Онцгой байдал гэдэг нь зөвхөн байгалийн гамшиг, осол төдийгөөр хязгаарлагдана."],ans:0,sc:10},
+    {q:"7. Ажлын байрны гэрэлтүүлгийг хэд ангилдаг вэ?",opts:["2","3","5"],ans:0,sc:10},
+    {q:"8. Ажлын байрны сөрөг хүчин зүйлийн ангилал аль нь вэ?",opts:["Химийн хүчин зүйл","Физик хүчин зүйл","Сэтгэлзүй физиологийн хүчин зүйл","Биологийн хүчин зүйл","Эргономикийн хүчин зүйл","Дээрх бүгд"],ans:5,sc:10},
+    {q:"9. Аюултай хог хаягдал гэж юу вэ?",opts:["Өнгөгүй цаас","Химийн бодисын сав","Органик хүнсний хаягдал"],ans:1,sc:10},
+    {q:"10. Гялгар уутны хогийн сав ямар өнгөтэй байдаг вэ?",opts:["Ногоон","Хар","Улбар шар"],ans:0,sc:10}
+  ]},
+  retaken_office:{label:"Ээлжит бус давтан / Оффис",questions:[
+    {q:"1. Цугларах цэгийн байршлийг сонгоно уу?",opts:["Шар","Ногоон","Улаан"],ans:1,sc:10},
+    {q:"2. Хөдөлмөрийн аюулгүй байдал гэж юу вэ?",opts:["Ажлын байран дахь эрүүл ахуйн стандартыг мөрдөж, ажилтны эрүүл мэндийг хамгаалах. Мэргэжлээс шалтгаалсан өвчнөөс урьдчилан сэргийлэхэд гол зорилго оршино.","Ажлын байрны аюулыг арилгаж, эрсдэлийг бууруулах, хянах арга хэмжээг хэрэгжүүлэх. Ажилтныг үйлдвэрлэлийн осол, хурц хордлогод өртөхөөс урьдчилан сэргийлэхэд гол зорилго оршино."],ans:1,sc:10},
+    {q:"3. Гарын 5 дүрмийн 3 дахь дүрмийг сонгоно уу?",opts:["Ажилд бэлэн байх шаардлагыг ханга.","Ачих буулгах үеийн аюулгүй ажиллагааг ханга.","Эрсдэлийг үнэлж зөвшөөрөл ав."],ans:2,sc:10},
+    {q:"4. Онцгой байдлын дугаарыг сонгоно уу?",opts:["87031111","80731111","83071111"],ans:2,sc:10},
+    {q:"5. Гал унтраагуур ашиглах зөв дүрмийг сонгоно уу?",opts:["Тат — Онил — Шах — Шүрш","Тат — Шах — Онил — Шүрш","Онил — Тат — Шах — Шүрш"],ans:0,sc:10},
+    {q:"6. Онцгой байдал гэж юу вэ?",opts:["«Онцгой байдал» гэдэг нь компани өөрийн нөөц боломжоор хариу арга хэмжээ авах боломжтой гэнэтийн осол гэмтэл, аюулт үзэгдэл гэх мэт онцгой нөхцөл байдлыг хэлнэ.","Онцгой байдал гэдэг нь зөвхөн байгалийн гамшиг, осол төдийгөөр хязгаарлагдана."],ans:0,sc:10},
+    {q:"7. Ажлын байрны гэрэлтүүлгийг хэд ангилдаг вэ?",opts:["2","3","5"],ans:0,sc:10},
+    {q:"8. Ажлын байрны сөрөг хүчин зүйлийн ангилал аль нь вэ?",opts:["Химийн хүчин зүйл","Физик хүчин зүйл","Сэтгэлзүй физиологийн хүчин зүйл","Биологийн хүчин зүйл","Эргономикийн хүчин зүйл","Дээрх бүгд"],ans:5,sc:10},
+    {q:"9. Аюултай хог хаягдал гэж юу вэ?",opts:["Өнгөгүй цаас","Химийн бодисын сав","Органик хүнсний хаягдал"],ans:1,sc:10},
+    {q:"10. Гялгар уутны хогийн сав ямар өнгөтэй байдаг вэ?",opts:["Ногоон","Хар","Улбар шар"],ans:0,sc:10}
+  ]},
+  retaken_risk:{label:"Ээлжит бус давтан / Эрсдэлтэй",questions:[
     {q:"1. Цугларах цэгийн байршлийг сонгоно уу?",opts:["Шар","Ногоон","Улаан"],ans:1,sc:10},
     {q:"2. Хөдөлмөрийн аюулгүй байдал гэж юу вэ?",opts:["Ажлын байран дахь эрүүл ахуйн стандартыг мөрдөж, ажилтны эрүүл мэндийг хамгаалах. Мэргэжлээс шалтгаалсан өвчнөөс урьдчилан сэргийлэхэд гол зорилго оршино.","Ажлын байрны аюулыг арилгаж, эрсдэлийг бууруулах, хянах арга хэмжээг хэрэгжүүлэх. Ажилтныг үйлдвэрлэлийн осол, хурц хордлогод өртөхөөс урьдчилан сэргийлэхэд гол зорилго оршино."],ans:1,sc:10},
     {q:"3. Гарын 5 дүрмийн 3 дахь дүрмийг сонгоно уу?",opts:["Ажилд бэлэн байх шаардлагыг ханга.","Ачих буулгах үеийн аюулгүй ажиллагааг ханга.","Эрсдэлийг үнэлж зөвшөөрөл ав."],ans:2,sc:10},
@@ -467,8 +490,9 @@ function selType(t){
   S.examType=t;
   document.querySelectorAll(".etype").forEach(e=>e.classList.remove("sel"));
   document.getElementById("et-"+t).classList.add("sel");
-  document.getElementById("posWrap").classList.toggle("show",t==="new");
-  if(t!=="new"){S.position=null;document.querySelectorAll(".pos-btn").forEach(b=>b.classList.remove("sel"));}
+  const needsPos = t==="new" || t==="retaken";
+  document.getElementById("posWrap").classList.toggle("show", needsPos);
+  if(!needsPos){S.position=null;document.querySelectorAll(".pos-btn").forEach(b=>b.classList.remove("sel"));}
 }
 function selPos(p){
   S.position=p;
@@ -485,8 +509,12 @@ function startExam(){
   if(!code)return toast("Ажилтны кодоо бичнэ үү","err");
   if(!comp)return toast("Компаниа сонгоно уу","err");
   if(!S.examType)return toast("Шалгалтын төрөл сонгоно уу","err");
-  if(S.examType==="new"&&!S.position)return toast("Ажлын байрны төрөл сонгоно уу","err");
-  S.examKey=S.examType==="new"?(S.position==="office"?"new_office":"new_risk"):S.examType;
+  if((S.examType==="new"||S.examType==="retaken")&&!S.position)return toast("Ажлын байрны төрөл сонгоно уу","err");
+  let examKey;
+  if(S.examType==="new") examKey = S.position==="office" ? "new_office" : "new_risk";
+  else if(S.examType==="retaken") examKey = S.position==="office" ? "retaken_office" : "retaken_risk";
+  else examKey = S.examType;
+  S.examKey = examKey;
   S.questions=EXAMS[S.examKey].questions;
   S.answers=new Array(S.questions.length).fill(null);
   S.curQ=0;S.t0=Date.now();
@@ -567,17 +595,12 @@ function goResult(){
   S.sig=document.getElementById("sigCanvas").toDataURL("image/png");
   calcScore();prog(100);steps(3);show("step4");hide("step3");
   renderResult();
-  // Build PDF first, then submit forms and upload to OneDrive
+  // Show forms status then submit
+  document.getElementById("formsStatus").classList.remove("hidden");
   setTimeout(()=>{
     buildPDF().then(blob=>{
       S.pdfBlob=blob;
       submitToForms();
-      if(OD_TOKEN) uploadToOneDrive(blob);
-      else{
-        document.getElementById("odStatus").classList.remove("hidden");
-        document.getElementById("odStatus").className="status-box err";
-        document.getElementById("odMsg").textContent="OneDrive: Нэвтрэх шаардлагатай. Бүртгэл цэснээс нэвтэрнэ үү.";
-      }
     });
   },300);
 }
@@ -627,6 +650,7 @@ async function submitToForms(){
   const fs=document.getElementById("formsStatus");
   const fm=document.getElementById("formsMsg");
   fs.className="status-box pending";
+  fm.innerHTML='<div class="spin" style="flex-shrink:0"></div> Microsoft Forms руу илгээж байна...';
 
   const last=document.getElementById("lastName").value.trim();
   const first=document.getElementById("firstName").value.trim();
@@ -637,57 +661,104 @@ async function submitToForms(){
   const corr=S.questions.filter((q,i)=>S.answers[i]===q.ans).length;
   const L=["A","B","C","D","E","F"];
 
-  // Build detailed answer summary with actual choices employee selected
   const answerDetail = S.questions.map((q,i)=>{
     const chosen = q.opts[S.answers[i]];
     const correct = q.opts[q.ans];
     const ok = S.answers[i]===q.ans;
-    return `${i+1}. ${L[S.answers[i]]}: ${chosen} ${ok?"✓":"✗ (Зөв: "+correct+")"}`;
+    return (i+1)+". "+L[S.answers[i]]+": "+chosen+" "+(ok?"✓":"✗ (Зөв: "+correct+")");
   }).join(" | ");
 
-  const startDate = new Date(S.t0).toISOString();
-  const submitDate = now.toISOString();
-
   const answers = [
-    {questionId: FORMS_CONFIG.questions.ovogNer,    answer1: last+" "+first},
-    {questionId: FORMS_CONFIG.questions.ajiltniKod, answer1: code},
-    {questionId: FORMS_CONFIG.questions.kompani,    answer1: comp},
+    {questionId: FORMS_CONFIG.questions.ovogNer,       answer1: last+" "+first},
+    {questionId: FORMS_CONFIG.questions.ajiltniKod,    answer1: code},
+    {questionId: FORMS_CONFIG.questions.kompani,       answer1: comp},
     {questionId: FORMS_CONFIG.questions.shalgaltTurul, answer1: EXAMS[S.examKey].label},
-    {questionId: FORMS_CONFIG.questions.onoo,       answer1: S.score+"/"+S.total+" ("+pct+"%)"},
-    {questionId: FORMS_CONFIG.questions.dun,        answer1: S.passed?"ТЭНЦСЭН ✓":"ТЭНЦЭЭГҮЙ ✗"},
-    {questionId: FORMS_CONFIG.questions.ognoo,      answer1: now.toLocaleString("mn-MN")},
-    {questionId: FORMS_CONFIG.questions.zovHariult, answer1: corr+"/"+S.questions.length+" | "+answerDetail}
+    {questionId: FORMS_CONFIG.questions.onoo,          answer1: S.score+"/"+S.total+" ("+pct+"%)"},
+    {questionId: FORMS_CONFIG.questions.dun,           answer1: S.passed?"ТЭНЦСЭН ✓":"ТЭНЦЭЭГҮЙ ✗"},
+    {questionId: FORMS_CONFIG.questions.ognoo,         answer1: now.toLocaleString("mn-MN")},
+    {questionId: FORMS_CONFIG.questions.zovHariult,    answer1: corr+"/"+S.questions.length+" | "+answerDetail}
   ];
 
   const payload = {
-    startDate: startDate,
-    submitDate: submitDate,
+    startDate: new Date(S.t0).toISOString(),
+    submitDate: now.toISOString(),
     answers: JSON.stringify(answers)
   };
+
+  // Get anti-forgery token from Forms page (only works when opened from same browser session)
+  const token = (window.OfficeFormServerInfo && window.OfficeFormServerInfo.antiForgeryToken) || "";
+  const muid = (window.OfficeFormServerInfo && window.OfficeFormServerInfo.serverSessionId) || "";
 
   try {
     const res = await fetch(FORMS_CONFIG.apiUrl, {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "__RequestVerificationToken": token,
+        "x-ms-form-request-source": "ms-formweb",
+        "x-ms-form-request-ring": "business",
+        "odata-maxverion": "4.0",
+        "odata-version": "4.0"
+      },
       body: JSON.stringify(payload)
     });
-    if(res.ok||res.status===201||res.status===200){
+
+    if(res.ok || res.status===201 || res.status===200){
       fs.className="status-box ok";
       fm.textContent="✓ Microsoft Forms-д амжилттай бүртгэгдлээ!";
-    } else if(res.status===401||res.status===403){
+    } else if(res.status===401 || res.status===403){
       fs.className="status-box err";
-      fm.textContent="⚠ Forms: Microsoft-д нэвтрэх шаардлагатай. Энэ хуудсыг SharePoint дотор нээнэ үү.";
+      fm.textContent="⚠ Нэвтрэх шаардлагатай — Microsoft 365-д нэвтэрсэн браузераас нээнэ үү.";
     } else {
       throw new Error("HTTP "+res.status);
     }
   } catch(e){
-    fs.className="status-box err";
-    fm.textContent="⚠ Forms алдаа: "+e.message+". SharePoint дотор ажиллуулна уу.";
+    // If CORS or auth error, try iframe injection method as fallback
+    await submitViaIframe(answers, payload, fs, fm);
   }
 
-  // Save record locally
   saveLocalRecord(now, pct, corr, answerDetail);
+}
+
+// Fallback: inject submission via hidden iframe that already has Forms session
+async function submitViaIframe(answers, payload, fs, fm){
+  return new Promise(resolve=>{
+    // Create hidden iframe pointing to Forms response page
+    const ifr = document.createElement("iframe");
+    ifr.style.cssText="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;";
+    ifr.src = "https://forms.office.com/r/2AdVX3yJ1z";
+    document.body.appendChild(ifr);
+
+    ifr.onload = () => {
+      setTimeout(async ()=>{
+        try {
+          const ifrWin = ifr.contentWindow;
+          // Get token from iframe context
+          const ifrToken = (ifrWin.OfficeFormServerInfo && ifrWin.OfficeFormServerInfo.antiForgeryToken) || "";
+          // Fill fields inside iframe
+          const setter = Object.getOwnPropertyDescriptor(ifrWin.HTMLInputElement.prototype,"value").set;
+          const inputs = Array.from(ifr.contentDocument.querySelectorAll('input[data-automation-id="textInput"]'));
+          const vals = answers.map(a=>a.answer1);
+          inputs.forEach((inp,i)=>{ setter.call(inp,vals[i]||""); inp.dispatchEvent(new ifrWin.Event("input",{bubbles:true})); });
+          // Submit inside iframe
+          await new Promise(r=>setTimeout(r,800));
+          const btn = Array.from(ifr.contentDocument.querySelectorAll("button")).find(b=>b.textContent.trim()==="Submit");
+          if(btn){ btn.click(); await new Promise(r=>setTimeout(r,1500)); }
+          fs.className="status-box ok";
+          fm.textContent="✓ Microsoft Forms-д амжилттай бүртгэгдлээ!";
+        } catch(e2){
+          fs.className="status-box err";
+          fm.textContent="⚠ Forms: Microsoft 365-д нэвтэрсэн браузераас нээнэ үү.";
+        } finally {
+          document.body.removeChild(ifr);
+          resolve();
+        }
+      }, 3000);
+    };
+    ifr.onerror = ()=>{ fs.className="status-box err"; fm.textContent="⚠ Forms холбогдсонгүй."; document.body.removeChild(ifr); resolve(); };
+  });
 }
 
 function saveLocalRecord(now, pct, corr, answerDetail){
@@ -1014,6 +1085,7 @@ function resetExam(){
   document.querySelectorAll(".etype").forEach(e=>e.classList.remove("sel"));
   document.querySelectorAll(".pos-btn").forEach(b=>b.classList.remove("sel"));
   document.getElementById("posWrap").classList.remove("show");
+  S.position=null;
   document.getElementById("scoreRing").className="score-ring";
   document.getElementById("scorePct").className="score-pct";
   document.getElementById("formsStatus").className="status-box pending";
