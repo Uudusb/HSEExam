@@ -773,14 +773,11 @@ async function submitToForms(){
     const res = await fetch(POWER_AUTOMATE_URL, {
       method: "POST",
       headers: { 
-        "Content-Type": "application/json",
-        "Accept": "application/json"
+        "Content-Type": "application/json"
       },
-      mode: "no-cors",
       body: JSON.stringify(payload)
     });
-    // no-cors mode always returns opaque response (status 0) but request goes through
-    if(res.ok || res.status===202 || res.status===0 || res.type==="opaque") {
+    if(res.ok || res.status===202 || res.status===200) {
       fs.className="status-box ok";
       fm.textContent="✓ SharePoint-д амжилттай хадгалагдлаа!";
       toast("✓ Хадгалагдлаа","ok");
