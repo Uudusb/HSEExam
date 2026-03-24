@@ -3,2221 +3,903 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Дээрэлхэлт Мэдээлэх Форм</title>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+Mongolian&display=swap" rel="stylesheet">
+<title>MSM Group — HSE Шалгалт</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  :root {
-    --sky: #5BA4CF;
-    --sky-light: #EAF4FB;
-    --sky-mid: #C5E1F5;
-    --teal: #38A89D;
-    --teal-light: #E0F4F3;
-    --warm: #F7C873;
-    --warm-light: #FEF6E4;
-    --rose: #E07B7B;
-    --rose-light: #FDEAEA;
-    --green: #5CB85C;
-    --green-light: #EAF6EA;
-    --purple: #8B72BE;
-    --purple-light: #F0EBF9;
-    --text: #2D3748;
-    --text-soft: #718096;
-    --bg: #F0F7FF;
-    --white: #FFFFFF;
-    --border: #CBD5E0;
-    --radius: 16px;
-    --shadow: 0 4px 24px rgba(91,164,207,0.12);
-  }
+:root{
+  --bg:#0a0e1a;--surface:#111827;--s2:#1c2333;--border:#2a3548;
+  --accent:#f59e0b;--blue:#3b82f6;--green:#10b981;--red:#ef4444;
+  --text:#e2e8f0;--muted:#64748b;--dim:#94a3b8;--r:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;
+  background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(245,158,11,.08) 0%,transparent 60%),
+  radial-gradient(ellipse 60% 40% at 80% 80%,rgba(59,130,246,.06) 0%,transparent 50%);}
+.wrap{max-width:800px;margin:0 auto;padding:36px 20px 100px;}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+.hdr{text-align:center;margin-bottom:44px;}
+.hdr-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--accent);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:6px 16px;border-radius:100px;margin-bottom:18px;}
+.hdr h1{font-size:clamp(22px,4vw,34px);font-weight:700;letter-spacing:-.5px;line-height:1.2;margin-bottom:10px;}
+.hdr h1 span{color:var(--accent);}
+.hdr p{color:var(--dim);font-size:14px;}
 
-  body {
-    font-family: 'Nunito', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 0 0 60px;
-  }
+.prog-wrap{background:var(--surface);border:1px solid var(--border);border-radius:100px;height:5px;margin-bottom:36px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--blue));border-radius:100px;transition:width .5s ease;}
 
-  /* ── HEADER ── */
-  .hero {
-    background: linear-gradient(135deg, #5BA4CF 0%, #38A89D 100%);
-    padding: 48px 24px 56px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='rgba(255,255,255,0.07)' stroke-width='2'/%3E%3C/svg%3E") repeat;
-    pointer-events: none;
-  }
-  .hero-icon {
-    font-size: 64px;
-    margin-bottom: 16px;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
-    animation: float 3s ease-in-out infinite;
-  }
-  @keyframes float {
-    0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-  .hero h1 {
-    font-size: clamp(22px, 5vw, 32px);
-    font-weight: 900;
-    color: #fff;
-    margin-bottom: 8px;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  }
-  .hero-sub {
-    font-size: 15px;
-    color: rgba(255,255,255,0.88);
-    font-weight: 600;
-  }
+.steps{display:flex;justify-content:center;gap:6px;margin-bottom:32px;}
+.sd{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s;}
+.sd.active{background:var(--accent);width:22px;border-radius:4px;}
+.sd.done{background:var(--green);}
 
-  /* ── INTRO CARD ── */
-  .intro-card {
-    max-width: 720px;
-    margin: -28px auto 0;
-    background: var(--white);
-    border-radius: 20px;
-    padding: 28px 28px 24px;
-    box-shadow: var(--shadow);
-    border-left: 6px solid var(--warm);
-    position: relative;
-    z-index: 2;
-  }
-  .intro-card h2 {
-    font-size: 17px;
-    font-weight: 800;
-    color: var(--text);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .intro-card p {
-    font-size: 14px;
-    line-height: 1.75;
-    color: var(--text-soft);
-  }
-  .intro-card p + p { margin-top: 8px; }
-  .promise-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 16px;
-  }
-  .promise-pill {
-    background: var(--sky-light);
-    color: var(--sky);
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 700;
-    border: 1.5px solid var(--sky-mid);
-  }
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:32px;margin-bottom:18px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--blue));}
+.sec-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
 
-  /* ── URGENT BANNER ── */
-  .urgent-banner {
-    max-width: 720px;
-    margin: 16px auto 0;
-    background: var(--rose-light);
-    border: 2px solid var(--rose);
-    border-radius: var(--radius);
-    padding: 18px 22px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .urgent-banner .icon { font-size: 28px; flex-shrink: 0; }
-  .urgent-banner strong { color: var(--rose); font-size: 15px; display: block; margin-bottom: 4px; }
-  .urgent-banner p { font-size: 13px; color: var(--text-soft); }
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:520px){.grid2{grid-template-columns:1fr;}}
+.fg{display:flex;flex-direction:column;gap:7px;}
+.fg label{font-size:12px;font-weight:500;color:var(--dim);letter-spacing:.4px;}
+.fg input,.fg select{background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:14px;padding:11px 13px;outline:none;transition:border-color .2s,box-shadow .2s;appearance:none;}
+.fg input:focus,.fg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,.12);}
+.fg select option{background:#1c2333;}
 
-  /* ── FORM WRAPPER ── */
-  .form-wrap {
-    max-width: 720px;
-    margin: 24px auto 0;
-    padding: 0 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
+.etype-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;}
+@media(max-width:460px){.etype-grid{grid-template-columns:1fr;}}
+.etype{background:var(--s2);border:2px solid var(--border);border-radius:10px;padding:15px;cursor:pointer;text-align:left;transition:all .2s;position:relative;}
+.etype:hover{border-color:rgba(245,158,11,.5);}
+.etype.sel{border-color:var(--accent);background:rgba(245,158,11,.05);}
+.etype.sel::after{content:'✓';position:absolute;top:9px;right:11px;color:var(--accent);font-weight:700;font-size:13px;}
+.etype .ei{font-size:20px;margin-bottom:5px;display:block;}
+.etype .en{font-size:13px;font-weight:600;display:block;margin-bottom:2px;}
+.etype .ed{font-size:11px;color:var(--dim);display:block;}
 
-  /* ── SECTION CARD ── */
-  .section-card {
-    background: var(--white);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    transition: box-shadow .2s;
-  }
-  .section-card:focus-within {
-    box-shadow: 0 6px 32px rgba(91,164,207,0.2);
-  }
-  .section-header {
-    padding: 18px 24px 14px;
-    border-bottom: 1.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .section-num {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: var(--sky);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 900;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .section-header h3 { font-size: 16px; font-weight: 800; color: var(--text); }
-  .section-header p { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
-  .section-body { padding: 22px 24px; display: flex; flex-direction: column; gap: 20px; }
+.pos-wrap{margin-top:14px;display:none;}
+.pos-wrap.show{display:block;}
+.pos-lbl{font-size:12px;font-weight:500;color:var(--dim);margin-bottom:8px;}
+.pos-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.pos-btn{background:var(--s2);border:2px solid var(--border);border-radius:8px;padding:11px 14px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .2s;text-align:center;}
+.pos-btn:hover{border-color:rgba(59,130,246,.5);color:var(--text);}
+.pos-btn.sel{border-color:var(--blue);color:var(--text);background:rgba(59,130,246,.06);}
 
-  /* ── FIELD ── */
-  .field { display: flex; flex-direction: column; gap: 8px; }
-  .field-label {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .req { color: var(--rose); font-size: 13px; }
-  .opt-tag {
-    background: var(--green-light);
-    color: var(--green);
-    font-size: 11px;
-    font-weight: 700;
-    border-radius: 999px;
-    padding: 2px 8px;
-  }
-  .field-hint { font-size: 12px; color: var(--text-soft); }
+.q-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.q-num{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1px;}
+.q-sc{font-size:12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--accent);padding:3px 10px;border-radius:100px;}
+.q-text{font-size:15px;font-weight:500;line-height:1.65;margin-bottom:22px;}
+.opts{display:flex;flex-direction:column;gap:9px;}
+.opt{display:flex;align-items:flex-start;gap:13px;background:var(--s2);border:2px solid var(--border);border-radius:10px;padding:13px 15px;cursor:pointer;transition:all .2s;}
+.opt:hover{border-color:rgba(245,158,11,.4);}
+.opt.sel{border-color:var(--accent);background:rgba(245,158,11,.05);}
+.opt-ltr{width:27px;height:27px;flex-shrink:0;border-radius:6px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--muted);transition:all .2s;}
+.opt.sel .opt-ltr{background:var(--accent);color:#000;}
+.opt-txt{font-size:14px;line-height:1.5;padding-top:4px;}
 
-  input[type="text"],
-  input[type="date"],
-  select,
-  textarea {
-    width: 100%;
-    font-family: 'Nunito', sans-serif;
-    font-size: 14px;
-    color: var(--text);
-    background: var(--bg);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    outline: none;
-    transition: border-color .2s, background .2s;
-  }
-  input[type="text"]:focus,
-  input[type="date"]:focus,
-  select:focus,
-  textarea:focus {
-    border-color: var(--sky);
-    background: var(--white);
-  }
-  textarea { resize: vertical; min-height: 100px; }
+.qdots{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:24px;}
+.qdot{width:27px;height:27px;border-radius:6px;border:2px solid var(--border);background:var(--s2);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .2s;font-family:'IBM Plex Mono',monospace;}
+.qdot.ans{border-color:var(--accent);color:var(--accent);background:rgba(245,158,11,.08);}
+.qdot.cur{border-color:var(--blue);color:#fff;background:var(--blue);}
 
-  /* ── RADIO & CHECKBOX ── */
-  .options-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 10px;
-  }
-  .options-col { display: flex; flex-direction: column; gap: 10px; }
+.timer{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--dim);}
+.timer.warn{color:var(--red);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-  .opt-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--bg);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
-    cursor: pointer;
-    transition: all .15s;
-    user-select: none;
-  }
-  .opt-item:hover { border-color: var(--sky); background: var(--sky-light); }
-  .opt-item input { display: none; }
-  .opt-item input:checked ~ .opt-box { background: var(--sky); border-color: var(--sky); }
-  .opt-item input:checked ~ .opt-box::after { opacity: 1; }
-  .opt-item:has(input:checked) { border-color: var(--sky); background: var(--sky-light); }
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:10px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;letter-spacing:.2px;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-primary:hover{background:#fbbf24;transform:translateY(-1px);box-shadow:0 4px 18px rgba(245,158,11,.3);}
+.btn-sec{background:var(--s2);border:1px solid var(--border);color:var(--dim);}
+.btn-sec:hover{border-color:var(--muted);color:var(--text);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:#059669;transform:translateY(-1px);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
 
-  .opt-box {
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    border: 2.5px solid var(--border);
-    background: var(--white);
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .15s;
-    position: relative;
-  }
-  .opt-box::after {
-    content: '';
-    width: 8px; height: 8px;
-    background: #fff;
-    border-radius: 50%;
-    opacity: 0;
-    transition: opacity .15s;
-  }
+.sig-wrap{border:2px dashed var(--border);border-radius:10px;overflow:hidden;background:var(--s2);}
+#sigCanvas{display:block;width:100%;height:155px;cursor:crosshair;touch-action:none;}
+.sig-acts{display:flex;gap:8px;margin-top:9px;}
 
-  .chk-box {
-    width: 20px; height: 20px;
-    border-radius: 6px;
-    border: 2.5px solid var(--border);
-    background: var(--white);
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .15s;
-  }
-  .opt-item input[type="checkbox"]:checked ~ .chk-box {
-    background: var(--teal);
-    border-color: var(--teal);
-  }
-  .opt-item input[type="checkbox"]:checked ~ .chk-box::after {
-    content: '✓';
-    color: #fff;
-    font-size: 13px;
-    font-weight: 900;
-  }
-  .opt-item:has(input[type="checkbox"]:checked) { border-color: var(--teal); background: var(--teal-light); }
+.res-hero{text-align:center;padding:28px 0 20px;}
+.score-ring{width:130px;height:130px;border-radius:50%;margin:0 auto 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:4px solid var(--border);}
+.score-ring.pass{border-color:var(--green);box-shadow:0 0 28px rgba(16,185,129,.2);}
+.score-ring.fail{border-color:var(--red);box-shadow:0 0 28px rgba(239,68,68,.2);}
+.score-pct{font-size:34px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1;}
+.score-pct.pass{color:var(--green);}
+.score-pct.fail{color:var(--red);}
+.score-sub{font-size:11px;color:var(--dim);margin-top:2px;}
+.verdict{font-size:20px;font-weight:700;margin-bottom:5px;}
+.verdict.pass{color:var(--green);}
+.verdict.fail{color:var(--red);}
+.res-note{color:var(--dim);font-size:14px;margin-bottom:24px;line-height:1.6;}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;}
+.sbox{background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:14px;text-align:center;}
+.sval{font-size:19px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--accent);}
+.skey{font-size:11px;color:var(--dim);margin-top:2px;}
 
-  .opt-label { font-size: 14px; font-weight: 600; }
-  .opt-emoji { font-size: 18px; }
+.rev-item{margin-bottom:14px;padding:14px;background:var(--s2);border-radius:9px;border:1px solid var(--border);}
+.rev-q{font-size:13px;font-weight:500;margin-bottom:8px;line-height:1.5;}
+.rev-ans{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.4;}
+.tag{flex-shrink:0;font-size:10px;font-weight:700;letter-spacing:.8px;padding:2px 8px;border-radius:100px;}
+.tag-ok{background:rgba(16,185,129,.15);color:var(--green);}
+.tag-wrong{background:rgba(239,68,68,.15);color:var(--red);}
+.tag-corr{background:rgba(16,185,129,.15);color:var(--green);}
+.rev-sep{height:1px;background:var(--border);margin:7px 0;}
 
-  /* row layout for grid of 2 */
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 480px) { .row2 { grid-template-columns: 1fr; } }
+.action-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;}
+@media(max-width:480px){.action-bar{grid-template-columns:1fr;}}
 
-  /* ── ANONYMOUS TOGGLE ── */
-  .anon-box {
-    background: var(--purple-light);
-    border: 2px solid var(--purple);
-    border-radius: var(--radius);
-    padding: 18px 22px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .anon-icon { font-size: 32px; flex-shrink: 0; }
-  .anon-text strong { font-size: 15px; color: var(--purple); }
-  .anon-text p { font-size: 13px; color: var(--text-soft); margin-top: 3px; }
+.status-box{display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:9px;font-size:13px;margin-top:10px;border:1px solid;}
+.status-box.pending{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.25);color:var(--blue);}
+.status-box.ok{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25);color:var(--green);}
+.status-box.err{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:var(--red);}
+.status-box.pdf-s{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25);color:var(--accent);}
 
-  .toggle-wrap { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-shrink: 0; }
-  .toggle-input { display: none; }
-  .toggle-track {
-    width: 52px; height: 28px;
-    background: var(--border);
-    border-radius: 999px;
-    position: relative;
-    cursor: pointer;
-    transition: background .2s;
-  }
-  .toggle-input:checked + .toggle-track { background: var(--purple); }
-  .toggle-thumb {
-    position: absolute;
-    top: 4px; left: 4px;
-    width: 20px; height: 20px;
-    background: #fff;
-    border-radius: 50%;
-    transition: transform .2s;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  }
-  .toggle-input:checked + .toggle-track .toggle-thumb { transform: translateX(24px); }
-  .toggle-label { font-size: 13px; font-weight: 700; color: var(--purple); }
+.spin{width:15px;height:15px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;flex-shrink:0;}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-  /* ── URGENT SECTION ── */
-  .urgent-section {
-    background: var(--rose-light);
-    border: 2.5px solid var(--rose);
-  }
-  .urgent-section .section-num { background: var(--rose); }
-  .urgent-section .section-header { border-bottom-color: #f5c6c6; }
-  .urgent-opt:has(input:checked) { border-color: var(--rose) !important; background: var(--rose-light) !important; }
-  .urgent-opt input:checked ~ .opt-box { background: var(--rose) !important; border-color: var(--rose) !important; }
+.div{height:1px;background:var(--border);margin:22px 0;}
 
-  /* ── SUBMIT ── */
-  .submit-area {
-    background: var(--white);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 28px 24px;
-    text-align: center;
-  }
-  .submit-note { font-size: 13px; color: var(--text-soft); margin-bottom: 18px; }
-  .submit-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: linear-gradient(135deg, var(--sky), var(--teal));
-    color: #fff;
-    font-family: 'Nunito', sans-serif;
-    font-size: 17px;
-    font-weight: 900;
-    border: none;
-    border-radius: 14px;
-    padding: 16px 40px;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(56,168,157,0.3);
-    transition: transform .15s, box-shadow .15s;
-    letter-spacing: 0.3px;
-  }
-  .submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(56,168,157,0.4);
-  }
-  .submit-btn:active { transform: translateY(0); }
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 20px;font-size:13px;box-shadow:0 8px 28px rgba(0,0,0,.4);transition:transform .3s;z-index:9999;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.t-err{border-color:var(--red);}
+.toast.t-ok{border-color:var(--green);}
+.hidden{display:none!important;}
 
-  /* ── SUCCESS ── */
-  .success-screen {
-    display: none;
-    max-width: 720px;
-    margin: 24px auto 0;
-    padding: 0 16px;
-  }
-  .success-card {
-    background: var(--white);
-    border-radius: 20px;
-    box-shadow: var(--shadow);
-    padding: 48px 32px;
-    text-align: center;
-  }
-  .success-icon { font-size: 72px; margin-bottom: 20px; animation: bounce .5s; }
-  @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
-  .success-card h2 { font-size: 24px; font-weight: 900; color: var(--teal); margin-bottom: 12px; }
-  .success-card p { font-size: 15px; color: var(--text-soft); line-height: 1.7; }
+/* ADMIN */
+.admin-fab{position:fixed;bottom:24px;right:24px;z-index:100;}
+.admin-fab button{background:var(--s2);border:1px solid var(--border);color:var(--dim);border-radius:100px;padding:10px 18px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;font-weight:600;}
+.admin-fab button:hover{border-color:var(--accent);color:var(--accent);}
 
-  /* misc */
-  .divider { height: 1.5px; background: var(--border); border-radius: 999px; }
-  .anon-fields { transition: opacity .3s, max-height .3s; overflow: hidden; }
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:940px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;}
+.modal-hdr{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.modal-hdr h2{font-size:15px;font-weight:700;color:var(--accent);}
+.modal-body{padding:20px 22px;overflow-y:auto;flex:1;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;}
+.modal-close:hover{color:var(--text);}
+
+.rtable{width:100%;border-collapse:collapse;font-size:13px;}
+.rtable th{text-align:left;padding:9px 11px;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border);}
+.rtable td{padding:10px 11px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.rtable tr:hover td{background:rgba(255,255,255,.015);}
+.bp{background:rgba(16,185,129,.12);color:var(--green);font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;}
+.bf{background:rgba(239,68,68,.12);color:var(--red);font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;}
+.rbtn{background:var(--s2);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.rbtn:hover{border-color:var(--accent);color:var(--accent);}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:14px;}
+
+/* FORMS SETUP INFO */
+.info-box{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);border-radius:9px;padding:14px 16px;font-size:13px;line-height:1.8;color:var(--dim);margin-bottom:14px;}
+.info-box strong{color:var(--blue);}
+.info-box code{background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);}
+.info-box a{color:var(--blue);}
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-icon">🛡️</div>
-  <h1>Дээрэлхэлт Мэдээлэх Форм</h1>
-  <p class="hero-sub">Аюулгүй · Нууцлалтай · Таны талд байна</p>
+  <div class="hdr">
+    <div class="hdr-badge">⚡ MSM Group LLC</div>
+    <h1>Аюулгүй байдлын<br><span>сургалтын тест</span></h1>
+    <p>Health, Safety &amp; Environment — Онлайн шалгалт</p>
+  </div>
+
+  <div class="prog-wrap"><div class="prog-fill" id="progBar" style="width:0%"></div></div>
+  <div class="steps">
+    <div class="sd active"></div><div class="sd"></div><div class="sd"></div><div class="sd"></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step1" class="card">
+    <div class="sec-label">01 — Хувийн мэдээлэл</div>
+    <div class="grid2">
+      <div class="fg"><label>ОВОГ *</label><input type="text" id="lastName" placeholder="Батбаяр"></div>
+      <div class="fg"><label>НЭР *</label><input type="text" id="firstName" placeholder="Энхбаяр"></div>
+      <div class="fg"><label>АЖИЛТНЫ КОД *</label><input type="text" id="empCode" placeholder="0000" maxlength="4"></div>
+      <div class="fg"><label>КОМПАНИ *</label>
+        <select id="company">
+          <option value="">— Сонгоно уу —</option>
+          <option>МСМ</option><option>Бетастар</option><option>Гэрээт</option><option>Бусад</option>
+        </select>
+      </div>
+    </div>
+    <div class="div"></div>
+    <div class="sec-label">02 — Шалгалтын төрөл</div>
+    <div class="etype-grid">
+      <div class="etype" onclick="selType('new')" id="et-new"><span class="ei">🆕</span><span class="en">Шинэ ажилтан</span><span class="ed">New employee</span></div>
+      <div class="etype" onclick="selType('temp')" id="et-temp"><span class="ei">⏱</span><span class="en">Түр ажилтан</span><span class="ed">Temporary employee</span></div>
+      <div class="etype" onclick="selType('guest')" id="et-guest"><span class="ei">🪪</span><span class="en">Зочин</span><span class="ed">Guest / Visitor</span></div>
+      <div class="etype" onclick="selType('retaken')" id="et-retaken"><span class="ei">🔄</span><span class="en">Ээлжит бус давтан</span><span class="ed">Retaken / Refresher</span></div>
+    </div>
+    <div class="pos-wrap" id="posWrap">
+      <div class="div"></div>
+      <div class="pos-lbl">АЖЛЫН БАЙРНЫ ТӨРӨЛ *</div>
+      <div class="pos-grid">
+        <div class="pos-btn" onclick="selPos('office')" id="pos-office">🏢 Оффис</div>
+        <div class="pos-btn" onclick="selPos('risk')" id="pos-risk">⚠️ Эрсдэлтэй</div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <span style="font-size:12px;color:var(--muted)">* Бүх талбар шаардлагатай</span>
+      <button class="btn btn-primary" onclick="startExam()">Тест эхлүүлэх →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div class="sec-label" style="margin:0">Тест</div>
+        <div class="timer" id="timerEl">⏱ 00:00</div>
+      </div>
+      <div class="qdots" id="qdots"></div>
+    </div>
+    <div class="card">
+      <div class="q-hdr">
+        <span class="q-num" id="qNum">Асуулт 1/10</span>
+        <span class="q-sc" id="qSc">10 оноо</span>
+      </div>
+      <div class="q-text" id="qText"></div>
+      <div class="opts" id="qOpts"></div>
+      <div class="nav-row">
+        <button class="btn btn-sec" id="btnPrev" onclick="navQ(-1)">← Өмнөх</button>
+        <button class="btn btn-primary" id="btnNext" onclick="navQ(1)">Дараах →</button>
+        <button class="btn btn-green hidden" id="btnSubmit" onclick="finishExam()">Дуусгах ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step3" class="hidden">
+    <div class="card">
+      <div class="sec-label">03 — Гарын үсэг</div>
+      <p style="font-size:14px;color:var(--dim);margin-bottom:18px;line-height:1.6;">Та доорх хэсэгт гарын үсгээ зурна уу.</p>
+      <div class="sig-wrap"><canvas id="sigCanvas" width="700" height="155"></canvas></div>
+      <div class="sig-acts">
+        <button class="btn btn-sec" onclick="clearSig()">🗑 Арилгах</button>
+        <span style="flex:1"></span>
+        <span style="font-size:12px;color:var(--muted);align-self:center">Зурсны дараа үргэлжлүүлнэ</span>
+      </div>
+      <div class="nav-row" style="margin-top:18px;">
+        <div></div>
+        <button class="btn btn-primary" onclick="goResult()">Үр дүн үзэх →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div id="step4" class="hidden">
+    <div class="card">
+      <div class="res-hero">
+        <div class="score-ring" id="scoreRing">
+          <div class="score-pct" id="scorePct">—</div>
+          <div class="score-sub">оноо</div>
+        </div>
+        <div class="verdict" id="verdict">—</div>
+        <div class="res-note" id="resNote">—</div>
+      </div>
+      <div class="stats3">
+        <div class="sbox"><div class="sval" id="stCorr">—</div><div class="skey">Зөв хариулт</div></div>
+        <div class="sbox"><div class="sval" id="stScore">—</div><div class="skey">Нийт оноо</div></div>
+        <div class="sbox"><div class="sval" id="stTime">—</div><div class="skey">Зарцуулсан цаг</div></div>
+      </div>
+
+      <div class="status-box pdf-s" id="pdfStatus"><div class="spin"></div><span id="pdfMsg">PDF бэлтгэж байна, автоматаар татагдана...</span></div>
+      <div class="status-box pending" id="formsStatus"><div class="spin"></div><span id="formsMsg">Microsoft Forms руу илгээж байна...</span></div>
+
+      <div class="div"></div>
+      <div class="sec-label">Асуулт бүрийн хариулт</div>
+      <div id="reviewArea"></div>
+      <div class="div"></div>
+      <div class="action-bar">
+        <button class="btn btn-sec" onclick="buildAndDownloadPDF(true)">📄 PDF дахин татах</button>
+        <button class="btn btn-primary" onclick="resetExam()">🔄 Шинэ шалгалт</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- INTRO CARD -->
-<div class="intro-card">
-  <h2>💛 Энд хандсанд баярлалаа</h2>
-  <p>
-    Энэ форм нь чамд аюулгүй, хэн ч мэдэхгүй газар өөрийн болон найзынхаа талаар мэдэгдэх боломжийг олгодог.
-    Чиний бичсэн мэдээлэл зөвхөн сургуулийн мэдэгдсэн багш, удирдлагад хүрнэ — өөр хэнд ч дамжихгүй.
-  </p>
-  <p>
-    Та нэрээ бичих эсвэл нууцлах эрхтэй. Аль ч тохиолдолд бид чамд тусалхыг хүсдэг. 💙
-  </p>
-  <div class="promise-row">
-    <span class="promise-pill">🔒 Нууцлалтай</span>
-    <span class="promise-pill">🧡 Шүүмжлэлгүй</span>
-    <span class="promise-pill">🏫 Сургуульд мэдэгдэнэ</span>
-    <span class="promise-pill">✅ Тусламж авах боломжтой</span>
-  </div>
-</div>
+<!-- ADMIN FAB -->
+<div class="admin-fab"><button onclick="openAdmin()">⚙ Бүртгэл</button></div>
 
-<!-- URGENT HOTLINE BANNER -->
-<div class="urgent-banner" style="max-width:720px;margin:16px auto 0;margin-left:auto;margin-right:auto;">
-  <span class="icon">🆘</span>
-  <div>
-    <strong>Яаралтай тусламж хэрэгтэй бол</strong>
-    <p>Шууд багш эсвэл сургуулийн нийгмийн ажилтантай холбогдоорой.<br>
-    Хүүхдийн утас: <strong>108</strong> &nbsp;|&nbsp; Цагдаа: <strong>102</strong></p>
-  </div>
-</div>
-
-<!-- MAIN FORM -->
-<div id="formWrap"><form class="form-wrap" id="reportForm" action="https://formspree.io/f/xojkreqk" method="POST" onsubmit="handleSubmit(event)">
-<input type="hidden" name="_replyto" value="M24MD2041@ufe.edu.mn">
-<input type="hidden" name="_subject" value="🛡️ Шинэ дээрэлхэлтийн мэдэгдэл ирлээ">
-<input type="hidden" name="_language" value="mn">
-
-  <!-- ── SECTION 0: ANONYMOUS TOGGLE ── -->
-  <div class="anon-box">
-    <span class="anon-icon">🎭</span>
-    <div class="anon-text">
-      <strong>Нэрээ нууцлах уу?</strong>
-      <p>Тохируулгыг асааж нэрээ хэлэхгүй байж болно.</p>
+<!-- ADMIN MODAL -->
+<div class="modal-bg hidden" id="adminModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h2>📋 Шалгалтын бүртгэл</h2>
+      <button class="modal-close" onclick="closeAdmin()">✕</button>
     </div>
-    <div class="toggle-wrap">
-      <input type="checkbox" class="toggle-input" id="anonToggle" onchange="toggleAnon(this)">
-      <label class="toggle-track" for="anonToggle">
-        <span class="toggle-thumb"></span>
-      </label>
-      <span class="toggle-label">Нууцлах</span>
-    </div>
-  </div>
+    <div class="modal-body">
 
-  <!-- ── SECTION 1: ТУХАЙН СУРАГЧ ── -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-num">1</div>
-      <div>
-        <h3>Таны мэдээлэл</h3>
-        <p>Та болон нөхцөл байдлын талаарх үндсэн мэдээлэл</p>
+      <!-- HOW FORMS WORKS INFO -->
+      <div class="info-box">
+        <strong>✅ Microsoft Forms холболт:</strong> Шалгалт дуусах бүрд өгөгдөл автоматаар таны <strong>HSEExam</strong> форм руу илгээгдэнэ.<br>
+        Forms-д харагдах талбарууд: <code>Овог нэр</code> <code>Ажилтны код</code> <code>Компани</code> <code>Шалгалтын төрөл</code> <code>Оноо</code> <code>Дүн</code> <code>Огноо</code> <code>Гарын үсэг</code><br><br>
+        <strong>⚠️ Нэг удаа хийх тохиргоо:</strong> Таны Forms-д эдгээр талбаруудыг нэмэх шаардлагатай.<br>
+        <a href="#" onclick="toggleFormsGuide();return false;" style="font-size:12px;">📖 Forms-д талбар нэмэх заавар →</a>
       </div>
-    </div>
-    <div class="section-body">
 
-      <div class="anon-fields" id="anonFields">
-        <div class="row2">
-          <div class="field">
-            <label class="field-label">
-              Нэр, овог
-              <span class="opt-tag">Заавал биш</span>
-            </label>
-            <input type="text" placeholder="Жишээ: Болд Батаа">
-          </div>
-          <div class="field">
-            <label class="field-label">
-              Хүйс <span class="req">*</span>
-            </label>
-            <div class="options-grid" style="grid-template-columns:1fr 1fr 1fr;">
-              <label class="opt-item">
-                <input type="radio" name="gender" value="male" required>
-                <span class="opt-box"></span>
-                <span class="opt-label">👦 Хөвгүүн</span>
-              </label>
-              <label class="opt-item">
-                <input type="radio" name="gender" value="female">
-                <span class="opt-box"></span>
-                <span class="opt-label">👧 Охин</span>
-              </label>
-              <label class="opt-item">
-                <input type="radio" name="gender" value="other">
-                <span class="opt-box"></span>
-                <span class="opt-label">🌈 Бусад</span>
-              </label>
-            </div>
-          </div>
+      <div id="formsGuide" class="hidden">
+        <div class="info-box" style="border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.05);">
+          <strong style="color:var(--green)">HSEExam форм-д нэмэх талбарууд (нэг удаа):</strong><br>
+          1. <a href="https://forms.office.com/Pages/DesignPageV2.aspx?origin=NeoPortalPage&subpage=design&id=zyS1WafN6kOpXaMsTiMem79PyxCDgxdNmM0dsX6L0oRUQUFESkhTS1JRVVRETEJURjQ5MDNRMDM1NS4u" target="_blank">HSEExam нээнэ</a><br>
+          2. <code>+ Add new → Text</code> → "Овог нэр" гэж нэрлэнэ<br>
+          3. <code>+ Add new → Text</code> → "Ажилтны код"<br>
+          4. <code>+ Add new → Text</code> → "Компани"<br>
+          5. <code>+ Add new → Text</code> → "Шалгалтын төрөл"<br>
+          6. <code>+ Add new → Text</code> → "Оноо"<br>
+          7. <code>+ Add new → Text</code> → "Дүн"<br>
+          8. <code>+ Add new → Text</code> → "Огноо"<br>
+          9. <code>+ Add new → Text</code> → "Гарын үсэг (зураг холбоос)"<br>
+          10. Форм хадгалагдсаны дараа хуваалцах URL-ийг авч доор оруулна уу.
         </div>
       </div>
 
-      <div class="row2">
-        <div class="field">
-          <label class="field-label">Анги <span class="req">*</span></label>
-          <select required>
-            <option value="">— Анги сонгох —</option>
-            <option>1-р анги</option><option>2-р анги</option><option>3-р анги</option>
-            <option>4-р анги</option><option>5-р анги</option><option>6-р анги</option>
-            <option>7-р анги</option><option>8-р анги</option><option>9-р анги</option>
-            <option>10-р анги</option><option>11-р анги</option><option>12-р анги</option>
-          </select>
+      <!-- FORMS RESPOND URL -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:600;color:var(--dim);margin-bottom:8px;">Microsoft Forms Response URL (Share → Copy link):</div>
+        <div style="display:flex;gap:9px;">
+          <input style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:10px 12px;outline:none;transition:border-color .2s;" 
+                 id="formsUrl" 
+                 placeholder="https://forms.office.com/r/xxxxxxxx" 
+                 oninput="saveFormsUrl()" 
+                 value="">
+          <button class="btn btn-sec" style="font-size:12px;white-space:nowrap" onclick="openForms()">🔗 Forms нээх</button>
         </div>
-        <div class="field">
-          <label class="field-label">Бүлэг <span class="req">*</span></label>
-          <select required>
-            <option value="">— Бүлэг сонгох —</option>
-            <option>А бүлэг</option><option>Б бүлэг</option><option>В бүлэг</option>
-            <option>Г бүлэг</option><option>Д бүлэг</option><option>Е бүлэг</option>
-          </select>
-        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">Forms → Share → Copy link → энд буулгана. Хоосон үлдвэл шинэ цонхонд нээж гараар бөглөнө.</div>
       </div>
 
-      <div class="field">
-        <label class="field-label">Энэ мэдэгдлийг хэн мэдэгдэж байна? <span class="req">*</span></label>
-        <div class="options-col">
-          <label class="opt-item">
-            <input type="radio" name="reporter" value="self" required>
-            <span class="opt-box"></span>
-            <span class="opt-emoji">🙋</span>
-            <span class="opt-label">Өөрөө дээрэлхэгдэж байгаа</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="reporter" value="friend">
-            <span class="opt-box"></span>
-            <span class="opt-emoji">👫</span>
-            <span class="opt-label">Найзынхаа талаар мэдэгдэж байгаа</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="reporter" value="witness">
-            <span class="opt-box"></span>
-            <span class="opt-emoji">👀</span>
-            <span class="opt-label">Гэрч болсон</span>
-          </label>
+      <div class="div"></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:13px;font-weight:600;color:var(--dim)" id="recCount">0 бүртгэл</span>
+        <div style="display:flex;gap:8px;">
+          <button class="rbtn" onclick="exportAll()">📄 Бүгдийг PDF татах</button>
+          <button class="rbtn" onclick="clearAll()">🗑 Устгах</button>
         </div>
       </div>
-
-    </div>
-  </div>
-
-  <!-- ── SECTION 2: ДЭЭРЭЛХЭЛТИЙН ТӨРӨЛ ── -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-num">2</div>
-      <div>
-        <h3>Дээрэлхэлтийн төрөл</h3>
-        <p>Болсон зүйлийг тодорхойлоорой — нэгээс олон сонгож болно</p>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="options-grid">
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="verbal">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">💬</span>
-          <span class="opt-label">Хэл амаар (доромжлол, дооглол)</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="physical">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">👊</span>
-          <span class="opt-label">Бие махбодийн (зодох, түлхэх)</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="cyber">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">📱</span>
-          <span class="opt-label">Цахим (онлайн доромжлол, зургийг тараах)</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="exclusion">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">🚫</span>
-          <span class="opt-label">Гадуурхалт (тоохгүй байх, хамт нааддаггүй)</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="property">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">🎒</span>
-          <span class="opt-label">Эд хөрөнгийн (зүйл авах, устгах)</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="threat">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">⚠️</span>
-          <span class="opt-label">Заналхийлэл, айлган сүрдүүлэлт</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="discrimination">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">🌍</span>
-          <span class="opt-label">Үндэс, гадаад төрхийн хавчлага</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="other">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">📝</span>
-          <span class="opt-label">Бусад</span>
-        </label>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Энэ ямар давтамжтай болж байна? <span class="req">*</span></label>
-        <div class="options-grid" style="grid-template-columns:1fr 1fr;">
-          <label class="opt-item">
-            <input type="radio" name="frequency" value="once" required>
-            <span class="opt-box"></span>
-            <span class="opt-label">Нэг удаа болсон</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="frequency" value="few">
-            <span class="opt-box"></span>
-            <span class="opt-label">Хэд хэдэн удаа болсон</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="frequency" value="weekly">
-            <span class="opt-box"></span>
-            <span class="opt-label">Долоо хоног бүр болдог</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="frequency" value="daily">
-            <span class="opt-box"></span>
-            <span class="opt-label">Өдөр бүр болдог</span>
-          </label>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SECTION 3: БОЛСОН НӨХЦӨЛ ── -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-num">3</div>
-      <div>
-        <h3>Болсон нөхцөл байдал</h3>
-        <p>Хаана, хэзээ болсон тухай мэдээлэл</p>
-      </div>
-    </div>
-    <div class="section-body">
-
-      <div class="row2">
-        <div class="field">
-          <label class="field-label">Болсон огноо <span class="opt-tag">Ойролцоо байж болно</span></label>
-          <input type="date">
-        </div>
-        <div class="field">
-          <label class="field-label">Болсон газар <span class="req">*</span></label>
-          <select required>
-            <option value="">— Газар сонгох —</option>
-            <option>Анги дотор</option>
-            <option>Хоолны газар (буфет)</option>
-            <option>Ариун цэврийн өрөө</option>
-            <option>Тамхины өрөө</option>
-            <option>Сургуулийн талбай</option>
-            <option>Сургуулийн коридор</option>
-            <option>Сургуулийн гадна</option>
-            <option>Онлайн орчинд (интернет)</option>
-            <option>Бусад</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Болсон зүйлийг дэлгэрэнгүй тайлбарлаарай <span class="req">*</span></label>
-        <p class="field-hint">Чадах чинээгээрээ тодорхой бичсэн тусмаа бид тусалж чадна. Хэн ч чамайг буруутгахгүй. 💙</p>
-        <textarea placeholder="Жишээ: ... анги дотор ... нэртэй хүүхэд надад ... гэж хэлсэн, ... хийсэн ..." required></textarea>
-      </div>
-
-      <div class="field">
-        <label class="field-label">🧑‍🤝‍🧑 Гэрч байсан уу?</label>
-        <div class="options-grid" style="grid-template-columns:1fr 1fr 1fr;">
-          <label class="opt-item">
-            <input type="radio" name="witness" value="yes">
-            <span class="opt-box"></span>
-            <span class="opt-label">Тийм, байсан</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="witness" value="no">
-            <span class="opt-box"></span>
-            <span class="opt-label">Байгаагүй</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="witness" value="unknown">
-            <span class="opt-box"></span>
-            <span class="opt-label">Мэдэхгүй</span>
-          </label>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SECTION 4: ДЭЭРЭЛХЭГЧ ── -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-num">4</div>
-      <div>
-        <h3>Дээрэлхэгчийн мэдээлэл</h3>
-        <p>Мэдэж байгаа зүйлийг л бичих хэрэгтэй — заавал биш</p>
-      </div>
-    </div>
-    <div class="section-body">
-
-      <div class="row2">
-        <div class="field">
-          <label class="field-label">Нэр <span class="opt-tag">Заавал биш</span></label>
-          <input type="text" placeholder="Нэр мэдэж байвал бичнэ үү">
-        </div>
-        <div class="field">
-          <label class="field-label">Анги, бүлэг <span class="opt-tag">Заавал биш</span></label>
-          <input type="text" placeholder="Жишээ: 8А эсвэл 9-р анги">
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Хүйс <span class="opt-tag">Заавал биш</span></label>
-        <div class="options-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;">
-          <label class="opt-item">
-            <input type="radio" name="bullyGender" value="male">
-            <span class="opt-box"></span>
-            <span class="opt-label">👦 Хөвгүүн</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="bullyGender" value="female">
-            <span class="opt-box"></span>
-            <span class="opt-label">👧 Охин</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="bullyGender" value="group">
-            <span class="opt-box"></span>
-            <span class="opt-label">👥 Бүлэг</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="bullyGender" value="unknown">
-            <span class="opt-box"></span>
-            <span class="opt-label">❓ Мэдэхгүй</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Нэмэлт тодорхойлолт <span class="opt-tag">Заавал биш</span></label>
-        <p class="field-hint">Харагдах байдал, хамт байсан хүмүүс г.м — мэдэж байгаа бол бичнэ үү</p>
-        <textarea placeholder="Жишээ: Ерөнхийдөө 3 хүүхэд байдаг, нэг нь цагаан малгайтай байдаг..." style="min-height:80px;"></textarea>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SECTION 5: ЯАРАЛТАЙ ТУСЛАМЖ ── -->
-  <div class="section-card urgent-section">
-    <div class="section-header">
-      <div class="section-num">🆘</div>
-      <div>
-        <h3>Яаралтай тусламж хэрэгтэй эсэх</h3>
-        <p>Чиний аюулгүй байдал маш чухал</p>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="field">
-        <label class="field-label">Одоо яаралтай тусламж хэрэгтэй байна уу? <span class="req">*</span></label>
-        <div class="options-col">
-          <label class="opt-item urgent-opt">
-            <input type="radio" name="urgent" value="yes_urgent" required>
-            <span class="opt-box"></span>
-            <span class="opt-emoji">🚨</span>
-            <span class="opt-label">Тийм — яаралтай тусламж хэрэгтэй (эрүүл мэнд, аюул)</span>
-          </label>
-          <label class="opt-item urgent-opt">
-            <input type="radio" name="urgent" value="yes_soon">
-            <span class="opt-box"></span>
-            <span class="opt-emoji">⚡</span>
-            <span class="opt-label">Удахгүй тусламж хэрэгтэй (их санаа зовж байна)</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="urgent" value="no_report">
-            <span class="opt-box"></span>
-            <span class="opt-emoji">📋</span>
-            <span class="opt-label">Яаралтай биш, зүгээр л мэдэгдэж байна</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Одоо өөрийгөө хэрхэн мэдэрч байна? <span class="opt-tag">Заавал биш</span></label>
-        <div class="options-grid">
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="scared">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">😨</span>
-            <span class="opt-label">Айж байна</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="sad">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">😢</span>
-            <span class="opt-label">Гунигтай байна</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="angry">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">😠</span>
-            <span class="opt-label">Уурлаж байна</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="confused">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">😕</span>
-            <span class="opt-label">Эргэлзэж байна</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="ok">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">😐</span>
-            <span class="opt-label">Хэвийн байна</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="brave">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">💪</span>
-            <span class="opt-label">Зоригтой мэдэгдэж байна</span>
-          </label>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SECTION 6: НЭМЭЛТ ── -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-num">6</div>
-      <div>
-        <h3>Нэмэлт мэдээлэл</h3>
-        <p>Бусад хэлэхийг хүссэн зүйл</p>
-      </div>
-    </div>
-    <div class="section-body">
-
-      <div class="field">
-        <label class="field-label">Өмнө нь мэдэгдэж байсан уу?</label>
-        <div class="options-grid" style="grid-template-columns:1fr 1fr;">
-          <label class="opt-item">
-            <input type="radio" name="prevReport" value="yes">
-            <span class="opt-box"></span>
-            <span class="opt-label">Тийм, мэдэгдсэн</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="prevReport" value="no">
-            <span class="opt-box"></span>
-            <span class="opt-label">Үгүй, анх удаа</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Нотлох баримт байна уу? <span class="opt-tag">Заавал биш</span></label>
-        <div class="options-grid">
-          <label class="opt-item">
-            <input type="checkbox" name="evidence" value="screenshot">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">📸</span>
-            <span class="opt-label">Зурагт дэлгэцийн хэвлэл (screenshot)</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="evidence" value="message">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">💬</span>
-            <span class="opt-label">Мессеж, чат</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="evidence" value="video">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">🎥</span>
-            <span class="opt-label">Видео, аудио</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="evidence" value="witness_name">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">🧑</span>
-            <span class="opt-label">Гэрчийн нэр бий</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Бид чамд ямар тусламж үзүүлэх вэ? <span class="opt-tag">Заавал биш</span></label>
-        <div class="options-col">
-          <label class="opt-item">
-            <input type="checkbox" name="help" value="talk">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">🗣️</span>
-            <span class="opt-label">Багш / сэтгэл зүйчтэй ярилцуулах</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="help" value="mediation">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">🤝</span>
-            <span class="opt-label">Дээрэлхэгчтэй зохицуулалт хийх</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="help" value="parents">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">👨‍👩‍👧</span>
-            <span class="opt-label">Эцэг эхэд мэдэгдэх</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="help" value="anonymous_only">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">📋</span>
-            <span class="opt-label">Зүгээр л бүртгэгдэх хүсэлтэй, шууд арга хэмжээ хэрэггүй</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Нэмэлт хэлэхийг хүссэн зүйл байна уу? <span class="opt-tag">Заавал биш</span></label>
-        <textarea placeholder="Энд чөлөөтэй бичнэ үү — ямар ч зүйл хэлж болно, шүүмжлэхгүй..."></textarea>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SUBMIT ── -->
-  <div class="submit-area">
-    <p class="submit-note">
-      🔒 Таны мэдэгдэл зөвхөн сургуулийн эрх бүхий багш, нийгмийн ажилтанд хүрнэ.<br>
-      Форм илгээсний дараа нэмэлт асуулт байвал чамтай холбогдож болно.
-    </p>
-    <button type="button" class="submit-btn" onclick="handleSubmit()">✉️ Мэдэгдэл илгээх</button>
-  </div>
-
-</form>
-
-<!-- SUCCESS SCREEN -->
-<div class="success-screen" id="successScreen">
-  <div class="success-card">
-    <div class="success-icon">🛡️</div>
-    <h2>Баярлалаа, зоригтой байсан!</h2>
-    <p>
-      Чиний мэдэгдэл амжилттай илгээгдлээ. 💙<br><br>
-      Сургуулийн эрх бүхий хүмүүс 24 цагийн дотор энэ асуудлыг хянана.<br>
-      Хэрэв яаралтай тусламж хэрэгтэй бол <strong>108</strong> эсвэл <strong>102</strong> дугаарт залга.
-    </p>
-    <div style="margin-top:24px;">
-      <button onclick="resetForm()" style="background:var(--sky-light);color:var(--sky);border:2px solid var(--sky-mid);border-radius:10px;padding:12px 28px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">
-        ← Буцах
-      </button>
+      <div id="recTable"></div>
     </div>
   </div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-  // ============================================================
-  // EMAILJS ТОХИРГОО - ЭДГЭЭР 3 КОДЫГ ӨӨРИЙНХӨӨРӨӨ СОЛИНО УУ
-  // emailjs.com -> Account -> General -> Public Key
-  var EMAILJS_PUBLIC_KEY  = "eo_6wWWDxsaqQ5zWh";
-  // emailjs.com -> Email Services -> Service ID
-  var EMAILJS_SERVICE_ID  = "service_notblih";
-  // emailjs.com -> Email Templates -> Template ID
-  var EMAILJS_TEMPLATE_ID = "template_rqweftd";
-  // ============================================================
+// ═══════════════════════════════════════════════
+// MICROSOFT FORMS CONFIG
+// Your HSEExam form ID (from the URL you provided)
+// ═══════════════════════════════════════════════
+const FORMS_ID = 'zyS1WafN6kOpXaMsTiMem79PyxCDgxdNmM0dsX6L0oRUQUFESkhTS1JRVVRETEJURjQ5MDNRMDM1NS4u';
 
-  emailjs.init(EMAILJS_PUBLIC_KEY);
+// ═══════════════════════════════════════════════
+// EXAM DATA
+// ═══════════════════════════════════════════════
+const EXAMS = {
+  new_office:{label:"Шинэ ажилтан / Оффис",questions:[
+    {q:"1. Цугларах цэгийн байршлийг сонгоно уу?",opts:["Шар","Ногоон","Улаан"],ans:1,sc:10},
+    {q:"2. Хөдөлмөрийн аюулгүй байдал гэж юу вэ?",opts:["Ажлын байран дахь эрүүл ахуйн стандартыг мөрдөж, ажилтны эрүүл мэндийг хамгаалах. Мэргэжлээс шалтгаалсан өвчнөөс урьдчилан сэргийлэхэд гол зорилго оршино.","Ажлын байрны аюулыг арилгаж, эрсдэлийг бууруулах, хянах арга хэмжээг хэрэгжүүлэх. Ажилтныг үйлдвэрлэлийн осол, хурц хордлогод өртөхөөс урьдчилан сэргийлэхэд гол зорилго оршино."],ans:1,sc:10},
+    {q:"3. Гарын 5 дүрмийн 3 дахь дүрмийг сонгоно уу?",opts:["Ажилд бэлэн байх шаардлагыг ханга.","Ачих буулгах үеийн аюулгүй ажиллагааг ханга.","Эрсдэлийг үнэлж зөвшөөрөл ав."],ans:2,sc:10},
+    {q:"4. Онцгой байдлын дугаарыг сонгоно уу?",opts:["87031111","80731111","83071111"],ans:2,sc:10},
+    {q:"5. Гал унтраагуур ашиглах зөв дүрмийг сонгоно уу?",opts:["Тат — Онил — Шах — Шүрш","Тат — Шах — Онил — Шүрш","Онил — Тат — Шах — Шүрш"],ans:0,sc:10},
+    {q:"6. Онцгой байдал гэж юу вэ?",opts:["«Онцгой байдал» гэдэг нь компани өөрийн нөөц боломжоор хариу арга хэмжээ авах боломжтой гэнэтийн осол гэмтэл, аюулт үзэгдэл гэх мэт онцгой нөхцөл байдлыг хэлнэ.","Онцгой байдал гэдэг нь зөвхөн байгалийн гамшиг, осол төдийгөөр хязгаарлагдана."],ans:0,sc:10},
+    {q:"7. Ажлын байрны гэрэлтүүлгийг хэд ангилдаг вэ?",opts:["2","3","5"],ans:0,sc:10},
+    {q:"8. Ажлын байрны сөрөг хүчин зүйлийн ангилал аль нь вэ?",opts:["Химийн хүчин зүйл","Физик хүчин зүйл","Сэтгэлзүй физиологийн хүчин зүйл","Биологийн хүчин зүйл","Эргономикийн хүчин зүйл","Дээрх бүгд"],ans:5,sc:10},
+    {q:"9. Аюултай хог хаягдал гэж юу вэ?",opts:["Өнгөгүй цаас","Химийн бодисын сав","Органик хүнсний хаягдал"],ans:1,sc:10},
+    {q:"10. Гялгар уутны хогийн сав ямар өнгөтэй байдаг вэ?",opts:["Ногоон","Хар","Улбар шар"],ans:0,sc:10}
+  ]},
+  new_risk:{label:"Шинэ ажилтан / Эрсдэлтэй",questions:[
+    {q:"1. Цугларах цэгийн байршлийг сонгоно уу?",opts:["Шар","Ногоон","Улаан"],ans:1,sc:10},
+    {q:"2. Хөдөлмөрийн аюулгүй байдал гэж юу вэ?",opts:["Ажлын байран дахь эрүүл ахуйн стандартыг мөрдөж, ажилтны эрүүл мэндийг хамгаалах. Мэргэжлээс шалтгаалсан өвчнөөс урьдчилан сэргийлэхэд гол зорилго оршино.","Ажлын байрны аюулыг арилгаж, эрсдэлийг бууруулах, хянах арга хэмжээг хэрэгжүүлэх. Ажилтныг үйлдвэрлэлийн осол, хурц хордлогод өртөхөөс урьдчилан сэргийлэхэд гол зорилго оршино."],ans:1,sc:10},
+    {q:"3. Гарын 5 дүрмийн 3 дахь дүрмийг сонгоно уу?",opts:["Ажилд бэлэн байх шаардлагыг ханга.","Ачих буулгах үеийн аюулгүй ажиллагааг ханга.","Эрсдэлийг үнэлж зөвшөөрөл ав."],ans:2,sc:10},
+    {q:"4. Онцгой байдлын дугаарыг сонгоно уу?",opts:["87031111","80731111","83071111"],ans:2,sc:10},
+    {q:"5. 5 алхам хуудсыг ямар үед ашиглах вэ?",opts:["Өдөрт нэг удаа тогтмол бөглөнө.","Ажил эхлэхийн өмнө болон ажил өөрчлөгдөх бүрт.","Зөвхөн осол гарсны дараа бөглөнө."],ans:1,sc:10},
+    {q:"6. ААДШ-ийг ямар тохиолдолд ашиглах вэ?",opts:["Зөвхөн осол гарсан үед.","Аюул, эрсдэлийг 5 алхмаар хянах боломжгүй, өндөр эрсдэлтэй эсвэл шинэ/ховор ажил хийх үед.","Өдөр бүр ажил эхлэхийн өмнө тогтмол хийнэ."],ans:1,sc:10},
+    {q:"7. Ажлын байрны гэрэлтүүлгийг хэд ангилдаг вэ?",opts:["2","3","5"],ans:0,sc:10},
+    {q:"8. Ажлын байрны сөрөг хүчин зүйлийн ангилал аль нь вэ?",opts:["Химийн хүчин зүйл","Физик хүчин зүйл","Сэтгэлзүй физиологийн хүчин зүйл","Биологийн хүчин зүйл","Эргономикийн хүчин зүйл","Дээрх бүгд"],ans:5,sc:10},
+    {q:"9. Аюултай хог хаягдал гэж юу вэ?",opts:["Өнгөгүй цаас","Химийн бодисын сав","Органик хүнсний хаягдал"],ans:1,sc:10},
+    {q:"10. Тос маслоны аюултай хог хаягдлын хогийн сав ямар өнгөтэй байдаг вэ?",opts:["Ногоон","Хар","Улаан"],ans:2,sc:10}
+  ]},
+  temp:{label:"Түр ажилтан",questions:[
+    {q:"1. Цугларах цэгийн байршлийг сонгоно уу?",opts:["Шар","Ногоон","Улаан"],ans:1,sc:10},
+    {q:"2. Хөдөлмөрийн аюулгүй байдал гэж юу вэ?",opts:["Ажлын байран дахь эрүүл ахуйн стандартыг мөрдөж, ажилтны эрүүл мэндийг хамгаалах. Мэргэжлээс шалтгаалсан өвчнөөс урьдчилан сэргийлэхэд гол зорилго оршино.","Ажлын байрны аюулыг арилгаж, эрсдэлийг бууруулах, хянах арга хэмжээг хэрэгжүүлэх. Ажилтныг үйлдвэрлэлийн осол, хурц хордлогод өртөхөөс урьдчилан сэргийлэхэд гол зорилго оршино."],ans:1,sc:10},
+    {q:"3. Гарын 5 дүрмийн 3 дахь дүрмийг сонгоно уу?",opts:["Ажилд бэлэн байх шаардлагыг ханга.","Ачих буулгах үеийн аюулгүй ажиллагааг ханга.","Эрсдэлийг үнэлж зөвшөөрөл ав."],ans:2,sc:10},
+    {q:"4. Онцгой байдлын дугаарыг сонгоно уу?",opts:["87031111","80731111","83071111"],ans:2,sc:10},
+    {q:"5. Гал унтраагуур ашиглах зөв дүрмийг сонгоно уу?",opts:["Тат — Онил — Шах — Шүрш","Тат — Шах — Онил — Шүрш","Онил — Тат — Шах — Шүрш"],ans:0,sc:10},
+    {q:"6. Онцгой байдал гэж юу вэ?",opts:["«Онцгой байдал» гэдэг нь компани өөрийн нөөц боломжоор хариу арга хэмжээ авах боломжтой гэнэтийн осол гэмтэл, аюулт үзэгдэл гэх мэт онцгой нөхцөл байдлыг хэлнэ.","Онцгой байдал гэдэг нь зөвхөн байгалийн гамшиг, осол төдийгөөр хязгаарлагдана."],ans:0,sc:10},
+    {q:"7. Ажлын байрны гэрэлтүүлгийг хэд ангилдаг вэ?",opts:["2","3","5"],ans:0,sc:10},
+    {q:"8. Ажлын байрны сөрөг хүчин зүйлийн ангилал аль нь вэ?",opts:["Химийн хүчин зүйл","Физик хүчин зүйл","Сэтгэлзүй физиологийн хүчин зүйл","Биологийн хүчин зүйл","Эргономикийн хүчин зүйл","Дээрх бүгд"],ans:5,sc:10},
+    {q:"9. Аюултай хог хаягдал гэж юу вэ?",opts:["Өнгөгүй цаас","Химийн бодисын сав","Органик хүнсний хаягдал"],ans:1,sc:10},
+    {q:"10. Гялгар уутны хогийн сав ямар өнгөтэй байдаг вэ?",opts:["Ногоон","Хар","Улбар шар"],ans:0,sc:10}
+  ]},
+  guest:{label:"Зочин / Guest",questions:[
+    {q:"1. Цугларах цэгийн байршлыг сонгоно уу?",opts:["Улаан / Red","Ногоон / Green","Шар / Yellow"],ans:1,sc:20},
+    {q:"2. Аюулыг олж илрүүлсэн үедээ та юу хийх вэ?",opts:["Юу ч болж байсан ажлаа үргэлжлүүлнэ.","Онцгой байдалд мэдэгдэнэ.","Цааш ажлаа үргэлжлүүлэхээс өмнө эрсдэлийн үнэлгээг дахин нягталж, ахлах ажилтанд мэдэгдэнэ.","Тоохгүй өнгөрнө."],ans:2,sc:20},
+    {q:"3. МСМ Групп ХХК-ийн онцгой байдлын дуудлагын дугаар хэд вэ?",opts:["84031111","80731111","83071111","87031111"],ans:2,sc:20},
+    {q:"4. Тусгаарласан хориотой бүс рүү яаралтай ажилтай тул нэвтэрнэ. / You may enter a blocked zone if work is urgent.",opts:["Үнэн / True","Худал / False"],ans:1,sc:20},
+    {q:"5. МСМ Групп ХХК-ийн хашаанд зөвшөөрөгдсөн дээд хурд хэд вэ?",opts:["30 км/ц","20 км/ц","40 км/ц"],ans:1,sc:20}
+  ]},
+  retaken:{label:"Ээлжит бус давтан зааварчилгаа",questions:[
+    {q:"1. Цугларах цэгийн байршлийг сонгоно уу?",opts:["Шар","Ногоон","Улаан"],ans:1,sc:10},
+    {q:"2. Хөдөлмөрийн аюулгүй байдал гэж юу вэ?",opts:["Ажлын байран дахь эрүүл ахуйн стандартыг мөрдөж, ажилтны эрүүл мэндийг хамгаалах. Мэргэжлээс шалтгаалсан өвчнөөс урьдчилан сэргийлэхэд гол зорилго оршино.","Ажлын байрны аюулыг арилгаж, эрсдэлийг бууруулах, хянах арга хэмжээг хэрэгжүүлэх. Ажилтныг үйлдвэрлэлийн осол, хурц хордлогод өртөхөөс урьдчилан сэргийлэхэд гол зорилго оршино."],ans:1,sc:10},
+    {q:"3. Гарын 5 дүрмийн 3 дахь дүрмийг сонгоно уу?",opts:["Ажилд бэлэн байх шаардлагыг ханга.","Ачих буулгах үеийн аюулгүй ажиллагааг ханга.","Эрсдэлийг үнэлж зөвшөөрөл ав."],ans:2,sc:10},
+    {q:"4. Онцгой байдлын дугаарыг сонгоно уу?",opts:["87031111","80731111","83071111"],ans:2,sc:10},
+    {q:"5. 5 алхам хуудсыг ямар үед ашиглах вэ?",opts:["Өдөрт нэг удаа тогтмол бөглөнө.","Ажил эхлэхийн өмнө болон ажил өөрчлөгдөх бүрт.","Зөвхөн осол гарсны дараа бөглөнө."],ans:1,sc:10},
+    {q:"6. ААДШ-ийг ямар тохиолдолд ашиглах вэ?",opts:["Зөвхөн осол гарсан үед.","Аюул, эрсдэлийг 5 алхмаар хянах боломжгүй, өндөр эрсдэлтэй эсвэл шинэ/ховор ажил хийх үед.","Өдөр бүр ажил эхлэхийн өмнө тогтмол хийнэ."],ans:1,sc:10},
+    {q:"7. Ажлын байрны гэрэлтүүлгийг хэд ангилдаг вэ?",opts:["2","3","5"],ans:0,sc:10},
+    {q:"8. Ажлын байрны сөрөг хүчин зүйлийн ангилал аль нь вэ?",opts:["Химийн хүчин зүйл","Физик хүчин зүйл","Сэтгэлзүй физиологийн хүчин зүйл","Биологийн хүчин зүйл","Эргономикийн хүчин зүйл","Дээрх бүгд"],ans:5,sc:10},
+    {q:"9. Аюултай хог хаягдал гэж юу вэ?",opts:["Өнгөгүй цаас","Химийн бодисын сав","Органик хүнсний хаягдал"],ans:1,sc:10},
+    {q:"10. Тос маслоны аюултай хог хаягдлын хогийн сав ямар өнгөтэй байдаг вэ?",opts:["Ногоон","Хар","Улаан"],ans:2,sc:10}
+  ]}
+};
 
-  function toggleAnon(el) {
-    var f = document.getElementById('anonFields');
-    f.style.opacity = el.checked ? '0.3' : '1';
-    f.style.pointerEvents = el.checked ? 'none' : 'auto';
-  }
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let S={examType:null,position:null,examKey:null,questions:[],answers:[],curQ:0,t0:null,t1:null,timerIv:null,sig:null,score:0,total:0,passed:false};
+const getRecs=()=>{try{return JSON.parse(localStorage.getItem('hse_recs')||'[]');}catch(e){return[];}};
+const saveRecs=r=>localStorage.setItem('hse_recs',JSON.stringify(r));
 
-  function getRadio(name) {
-    var el = document.querySelector('input[name="' + name + '"]:checked');
-    return el ? el.value : 'Хоосон';
-  }
+window.addEventListener('load',()=>{
+  const v=localStorage.getItem('hse_forms_url')||'';
+  if(v) document.getElementById('formsUrl').value=v;
+});
 
-  function getCheckboxes(name) {
-    var checked = document.querySelectorAll('input[name="' + name + '"]:checked');
-    if (!checked.length) return 'Хоосон';
-    var vals = [];
-    for (var i = 0; i < checked.length; i++) vals.push(checked[i].value);
-    return vals.join(', ');
-  }
+// ═══════════════════════════════════════════════
+// STEP 1
+// ═══════════════════════════════════════════════
+function selType(t){
+  S.examType=t;
+  document.querySelectorAll('.etype').forEach(e=>e.classList.remove('sel'));
+  document.getElementById('et-'+t).classList.add('sel');
+  document.getElementById('posWrap').classList.toggle('show',t==='new');
+  if(t!=='new'){S.position=null;document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('sel'));}
+}
+function selPos(p){
+  S.position=p;
+  document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('pos-'+p).classList.add('sel');
+}
+function startExam(){
+  const last=document.getElementById('lastName').value.trim();
+  const first=document.getElementById('firstName').value.trim();
+  const code=document.getElementById('empCode').value.trim();
+  const comp=document.getElementById('company').value;
+  if(!last)return toast('Овгоо бичнэ үү','err');
+  if(!first)return toast('Нэрээ бичнэ үү','err');
+  if(!code)return toast('Ажилтны кодоо бичнэ үү','err');
+  if(!comp)return toast('Компаниа сонгоно уу','err');
+  if(!S.examType)return toast('Шалгалтын төрөл сонгоно уу','err');
+  if(S.examType==='new'&&!S.position)return toast('Ажлын байрны төрөл сонгоно уу','err');
+  S.examKey=S.examType==='new'?(S.position==='office'?'new_office':'new_risk'):S.examType;
+  S.questions=EXAMS[S.examKey].questions;
+  S.answers=new Array(S.questions.length).fill(null);
+  S.curQ=0;S.t0=Date.now();
+  prog(50);steps(1);show('step2');hide('step1');
+  renderDots();renderQ();startTimer();
+}
 
-  function v(id) {
-    var el = document.getElementById(id);
-    return el ? (el.value.trim() || 'Хоосон') : 'Хоосон';
-  }
+// ═══════════════════════════════════════════════
+// STEP 2
+// ═══════════════════════════════════════════════
+function renderDots(){
+  const w=document.getElementById('qdots');w.innerHTML='';
+  S.questions.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='qdot'+(i===S.curQ?' cur':'')+(S.answers[i]!==null?' ans':'');
+    d.textContent=i+1;d.onclick=()=>{S.curQ=i;renderQ();renderDots();};
+    w.appendChild(d);
+  });
+}
+function renderQ(){
+  const q=S.questions[S.curQ],n=S.questions.length;
+  document.getElementById('qNum').textContent=`Асуулт ${S.curQ+1}/${n}`;
+  document.getElementById('qSc').textContent=`${q.sc} оноо`;
+  document.getElementById('qText').textContent=q.q;
+  const L=['A','B','C','D','E','F'];
+  const ow=document.getElementById('qOpts');ow.innerHTML='';
+  q.opts.forEach((o,i)=>{
+    const d=document.createElement('div');
+    d.className='opt'+(S.answers[S.curQ]===i?' sel':'');
+    d.innerHTML=`<div class="opt-ltr">${L[i]}</div><div class="opt-txt">${o}</div>`;
+    d.onclick=()=>{S.answers[S.curQ]=i;renderQ();renderDots();};
+    ow.appendChild(d);
+  });
+  document.getElementById('btnPrev').disabled=S.curQ===0;
+  const last=S.curQ===n-1;
+  document.getElementById('btnNext').classList.toggle('hidden',last);
+  document.getElementById('btnSubmit').classList.toggle('hidden',!last);
+}
+function navQ(d){const n=S.curQ+d;if(n<0||n>=S.questions.length)return;S.curQ=n;renderQ();renderDots();}
+function finishExam(){
+  const ua=S.answers.filter(a=>a===null).length;
+  if(ua>0)return toast(`⚠ ${ua} асуулт хариулаагүй байна`,'err');
+  S.t1=Date.now();clearInterval(S.timerIv);
+  prog(75);steps(2);show('step3');hide('step2');initSig();
+}
+function startTimer(){
+  const el=document.getElementById('timerEl');
+  S.timerIv=setInterval(()=>{
+    const s=Math.floor((Date.now()-S.t0)/1000);
+    el.textContent=`⏱ ${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    el.classList.toggle('warn',s>1800);
+  },1000);
+}
 
-  function buildSummary() {
-    var isAnon = document.getElementById('anonToggle').checked;
-    var s = '';
-    s += '=== ДЭЭРЭЛХЭЛТИЙН МЭДЭГДЭЛ ===\n\n';
-    s += '[ 1. МЭДЭГДЭГЧИЙН МЭДЭЭЛЭЛ ]\n';
-    s += 'Нэрээ нууцалсан  : ' + (isAnon ? 'Тийм' : 'Үгүй') + '\n';
-    if (!isAnon) {
-      s += 'Нэр, овог        : ' + v('f_ner') + '\n';
-      s += 'Хүйс             : ' + getRadio('gender') + '\n';
+// ═══════════════════════════════════════════════
+// STEP 3
+// ═══════════════════════════════════════════════
+let sigCtx,sigDown=false,sigMark=false;
+function initSig(){
+  const c=document.getElementById('sigCanvas');
+  const dpr=window.devicePixelRatio||1;
+  const r=c.getBoundingClientRect();
+  c.width=r.width*dpr;c.height=155*dpr;
+  sigCtx=c.getContext('2d');sigCtx.scale(dpr,dpr);
+  sigCtx.strokeStyle='#f59e0b';sigCtx.lineWidth=2.5;sigCtx.lineCap='round';sigCtx.lineJoin='round';
+  const gp=(e,c)=>{const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+  c.onmousedown=e=>{sigDown=true;const p=gp(e,c);sigCtx.beginPath();sigCtx.moveTo(p.x,p.y);};
+  c.onmousemove=e=>{if(!sigDown)return;const p=gp(e,c);sigCtx.lineTo(p.x,p.y);sigCtx.stroke();sigMark=true;};
+  c.onmouseup=c.onmouseleave=()=>sigDown=false;
+  c.ontouchstart=e=>{e.preventDefault();sigDown=true;const p=gp(e.touches[0],c);sigCtx.beginPath();sigCtx.moveTo(p.x,p.y);};
+  c.ontouchmove=e=>{e.preventDefault();if(!sigDown)return;const p=gp(e.touches[0],c);sigCtx.lineTo(p.x,p.y);sigCtx.stroke();sigMark=true;};
+  c.ontouchend=()=>sigDown=false;
+}
+function clearSig(){const c=document.getElementById('sigCanvas');sigCtx.clearRect(0,0,c.width,c.height);sigMark=false;}
+
+function goResult(){
+  if(!sigMark)return toast('Гарын үсэг зурна уу','err');
+  S.sig=document.getElementById('sigCanvas').toDataURL('image/png');
+  calcScore();prog(100);steps(3);show('step4');hide('step3');
+  renderResult();
+  setTimeout(()=>buildAndDownloadPDF(false), 300);
+  setTimeout(()=>submitToForms(), 900);
+}
+
+// ═══════════════════════════════════════════════
+// STEP 4 — RESULT
+// ═══════════════════════════════════════════════
+function calcScore(){
+  let sc=0,tot=0;
+  S.questions.forEach((q,i)=>{tot+=q.sc;if(S.answers[i]===q.ans)sc+=q.sc;});
+  S.score=sc;S.total=tot;S.passed=sc/tot>=0.8;
+}
+function renderResult(){
+  const pct=Math.round(S.score/S.total*100);
+  document.getElementById('scoreRing').classList.add(S.passed?'pass':'fail');
+  const pe=document.getElementById('scorePct');pe.classList.add(S.passed?'pass':'fail');pe.textContent=pct+'%';
+  document.getElementById('verdict').textContent=S.passed?'✅ ТЭНЦСЭН':'❌ ТЭНЦЭЭГҮЙ';
+  document.getElementById('verdict').className='verdict '+(S.passed?'pass':'fail');
+  document.getElementById('resNote').textContent=S.passed
+    ?'Танд баяр хүргэе! Та шалгалтыг амжилттай давлаа.'
+    :'Та 80%-иас доош оноо авсан тул дахин сургалтанд хамрагдах шаардлагатай.';
+  const el=Math.floor((S.t1-S.t0)/1000);
+  document.getElementById('stCorr').textContent=S.questions.filter((q,i)=>S.answers[i]===q.ans).length+'/'+S.questions.length;
+  document.getElementById('stScore').textContent=S.score+'/'+S.total;
+  document.getElementById('stTime').textContent=String(Math.floor(el/60)).padStart(2,'0')+':'+String(el%60).padStart(2,'0');
+  const area=document.getElementById('reviewArea');area.innerHTML='';
+  const L=['A','B','C','D','E','F'];
+  S.questions.forEach((q,i)=>{
+    const ok=S.answers[i]===q.ans;
+    const d=document.createElement('div');d.className='rev-item';
+    d.innerHTML=`<div class="rev-q">${q.q}</div>`;
+    if(ok){d.innerHTML+=`<div class="rev-ans"><span class="tag tag-ok">✓ ЗӨВ</span><span>${L[S.answers[i]]}: ${q.opts[S.answers[i]]}</span></div>`;}
+    else{
+      d.innerHTML+=`<div class="rev-ans"><span class="tag tag-wrong">ТАНЫ</span><span>${L[S.answers[i]]}: ${q.opts[S.answers[i]]}</span></div>`;
+      d.innerHTML+=`<div class="rev-sep"></div>`;
+      d.innerHTML+=`<div class="rev-ans"><span class="tag tag-corr">✓ ЗӨВ</span><span>${L[q.ans]}: ${q.opts[q.ans]}</span></div>`;
     }
-    s += 'Анги             : ' + v('f_angi') + '\n';
-    s += 'Бүлэг            : ' + v('f_buleg') + '\n';
-    s += 'Мэдэгдэгч        : ' + getRadio('reporter') + '\n';
-    s += '\n[ 2. ДЭЭРЭЛХЭЛТИЙН ТӨРӨЛ ]\n';
-    s += 'Төрлүүд          : ' + getCheckboxes('type') + '\n';
-    s += 'Давтамж          : ' + getRadio('frequency') + '\n';
-    s += '\n[ 3. БОЛСОН НӨХЦӨЛ ]\n';
-    s += 'Огноо            : ' + v('f_ognoo') + '\n';
-    s += 'Газар            : ' + v('f_gazar') + '\n';
-    s += 'Гэрч байсан      : ' + getRadio('witness') + '\n';
-    s += '\nДэлгэрэнгүй тайлбар:\n' + v('f_tailbar') + '\n';
-    s += '\n[ 4. ДЭЭРЭЛХЭГЧИЙН МЭДЭЭЛЭЛ ]\n';
-    s += 'Нэр              : ' + v('f_bully_ner') + '\n';
-    s += 'Анги, бүлэг      : ' + v('f_bully_angi') + '\n';
-    s += 'Хүйс             : ' + getRadio('bullyGender') + '\n';
-    s += '\nНэмэлтэл тодорхойлолт:\n' + v('f_bully_todorh') + '\n';
-    s += '\n[ 5. ЯАРАЛТАЙ ТУСЛАМЖ ]\n';
-    s += 'Яаралтай эсэх    : ' + getRadio('urgent') + '\n';
-    s += 'Мэдрэмж          : ' + getCheckboxes('feeling') + '\n';
-    s += '\n[ 6. НЭМЭЛТЭЛ МЭДЭЭЛЭЛ ]\n';
-    s += 'Өмнө мэдэгдсэн   : ' + getRadio('prevReport') + '\n';
-    s += 'Нотлох баримт    : ' + getCheckboxes('evidence') + '\n';
-    s += 'Хэрэгтэй тусламж : ' + getCheckboxes('help') + '\n';
-    s += '\nНэмэлтэл тайлбар:\n' + v('f_nemeltel') + '\n';
-    s += '\n================================\n';
-    return s;
+    area.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// MICROSOFT FORMS AUTO-SUBMIT
+// Uses the Forms pre-fill URL approach — opens
+// a hidden iframe, fills fields, and submits.
+// The form receives a structured text response.
+// ═══════════════════════════════════════════════
+function submitToForms(){
+  const fs=document.getElementById('formsStatus');
+  const fm=document.getElementById('formsMsg');
+
+  const last=document.getElementById('lastName').value.trim();
+  const first=document.getElementById('firstName').value.trim();
+  const code=document.getElementById('empCode').value.trim();
+  const comp=document.getElementById('company').value;
+  const now=new Date();
+  const pct=Math.round(S.score/S.total*100);
+  const corr=S.questions.filter((q,i)=>S.answers[i]===q.ans).length;
+
+  // Build the data payload as a text summary for Forms
+  const data = {
+    name:        last + ' ' + first,
+    code:        code,
+    company:     comp,
+    examType:    EXAMS[S.examKey].label,
+    score:       S.score + ' / ' + S.total + ' (' + pct + '%)',
+    result:      S.passed ? 'ТЭНЦСЭН ✓' : 'ТЭНЦЭЭГҮЙ ✗',
+    date:        now.toLocaleString('mn-MN'),
+    correct:     corr + ' / ' + S.questions.length,
+    sigNote:     'Гарын үсэг зурагдсан — PDF-д хавсаргасан'
+  };
+
+  // Build pre-fill URL for Microsoft Forms
+  // Using the respond page with prefill parameters
+  const respondBase = 'https://forms.office.com/Pages/ResponsePage.aspx?id=' + FORMS_ID;
+
+  // Store for admin panel
+  saveRecord(data, now, pct);
+
+  // Check if user has set a custom forms URL
+  const customUrl = localStorage.getItem('hse_forms_url') || '';
+
+  // Build pre-fill URL — encodes all data as query params
+  // Microsoft Forms pre-fill format: &r[questionId]=value
+  // Since we don't know question IDs yet, we open Forms with data in a new tab
+  // and show clear instructions. If user adds question IDs below, it fully auto-fills.
+  const summaryText =
+    'Овог нэр: ' + data.name + '\n' +
+    'Ажилтны код: ' + data.code + '\n' +
+    'Компани: ' + data.company + '\n' +
+    'Шалгалтын төрөл: ' + data.examType + '\n' +
+    'Оноо: ' + data.score + '\n' +
+    'Дүн: ' + data.result + '\n' +
+    'Огноо: ' + data.date + '\n' +
+    'Зөв хариулт: ' + data.correct;
+
+  // Save to clipboard for easy paste into Forms
+  navigator.clipboard.writeText(summaryText).catch(()=>{});
+
+  // Open the Forms response page in a new background tab
+  const targetUrl = customUrl || respondBase;
+  const win = window.open(targetUrl, '_blank');
+
+  if(win){
+    fs.className='status-box ok';
+    fm.innerHTML='✓ Microsoft Forms цонх нээгдлээ — өгөгдөл clipboard-д хуулагдлаа';
+    toast('✓ Forms нээгдлээ, өгөгдөл clipboard-д байна','ok');
+  } else {
+    fs.className='status-box err';
+    fm.textContent='⚠ Цонх нээж чадсангүй — браузерын pop-up блокийг идэвхгүй болгоно уу.';
   }
-
-  function validate() {
-    if (v('f_angi') === 'Хоосон') { alert('Анги сонгоно уу!'); return false; }
-    if (v('f_buleg') === 'Хоосон') { alert('Бүлэг сонгоно уу!'); return false; }
-    if (getRadio('reporter') === 'Хоосон') { alert('Мэдэгдэгчийг сонгоно уу!'); return false; }
-    if (getRadio('frequency') === 'Хоосон') { alert('Давтамж сонгоно уу!'); return false; }
-    if (v('f_gazar') === 'Хоосон') { alert('Болсон газар сонгоно уу!'); return false; }
-    var tb = document.getElementById('f_tailbar');
-    if (!tb || !tb.value.trim()) { alert('Дэлгэрэнгүй тайлбар бичнэ үү!'); return false; }
-    if (getRadio('urgent') === 'Хоосон') { alert('Яаралтай эсэхийг сонгоно уу!'); return false; }
-    return true;
-  }
-
-  function handleSubmit() {
-    if (!validate()) return;
-    var btn = document.querySelector('.submit-btn');
-    btn.innerHTML = 'Илгээж байна...';
-    btn.disabled = true;
-
-    var templateParams = {
-      to_email: 'M24MD2041@ufe.edu.mn',
-      subject: 'Дээрэлхэлтийн шинэ мэдэгдэл ирлээ',
-      message: buildSummary()
-    };
-
-    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-      .then(function() {
-        document.getElementById('formWrap').style.display = 'none';
-        document.getElementById('successScreen').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, function(error) {
-        console.error('EmailJS error:', error);
-        btn.innerHTML = 'Алдаа гарлаа. Дахин оролдоно уу.';
-        btn.disabled = false;
-      });
-  }
-
-  function resetForm() {
-    var inputs = document.querySelectorAll('input[type=text], textarea');
-    for (var i = 0; i < inputs.length; i++) inputs[i].value = '';
-    var radios = document.querySelectorAll('input[type=radio], input[type=checkbox]');
-    for (var i = 0; i < radios.length; i++) radios[i].checked = false;
-    var selects = document.querySelectorAll('select');
-    for (var i = 0; i < selects.length; i++) selects[i].selectedIndex = 0;
-    var ognoo = document.getElementById('f_ognoo');
-    if (ognoo) ognoo.value = '';
-    var tog = document.getElementById('anonToggle');
-    if (tog) tog.checked = false;
-    toggleAnon({ checked: false });
-    document.getElementById('formWrap').style.display = 'flex';
-    document.getElementById('successScreen').style.display = 'none';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-</script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+Mongolian&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --sky: #5BA4CF;
-    --sky-light: #EAF4FB;
-    --sky-mid: #C5E1F5;
-    --teal: #38A89D;
-    --teal-light: #E0F4F3;
-    --warm: #F7C873;
-    --warm-light: #FEF6E4;
-    --rose: #E07B7B;
-    --rose-light: #FDEAEA;
-    --green: #5CB85C;
-    --green-light: #EAF6EA;
-    --purple: #8B72BE;
-    --purple-light: #F0EBF9;
-    --text: #2D3748;
-    --text-soft: #718096;
-    --bg: #F0F7FF;
-    --white: #FFFFFF;
-    --border: #CBD5E0;
-    --radius: 16px;
-    --shadow: 0 4px 24px rgba(91,164,207,0.12);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Nunito', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 0 0 60px;
-  }
-
-  /* ── HEADER ── */
-  .hero {
-    background: linear-gradient(135deg, #5BA4CF 0%, #38A89D 100%);
-    padding: 48px 24px 56px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='rgba(255,255,255,0.07)' stroke-width='2'/%3E%3C/svg%3E") repeat;
-    pointer-events: none;
-  }
-  .hero-icon {
-    font-size: 64px;
-    margin-bottom: 16px;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
-    animation: float 3s ease-in-out infinite;
-  }
-  @keyframes float {
-    0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-  .hero h1 {
-    font-size: clamp(22px, 5vw, 32px);
-    font-weight: 900;
-    color: #fff;
-    margin-bottom: 8px;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  }
-  .hero-sub {
-    font-size: 15px;
-    color: rgba(255,255,255,0.88);
-    font-weight: 600;
-  }
-
-  /* ── INTRO CARD ── */
-  .intro-card {
-    max-width: 720px;
-    margin: -28px auto 0;
-    background: var(--white);
-    border-radius: 20px;
-    padding: 28px 28px 24px;
-    box-shadow: var(--shadow);
-    border-left: 6px solid var(--warm);
-    position: relative;
-    z-index: 2;
-  }
-  .intro-card h2 {
-    font-size: 17px;
-    font-weight: 800;
-    color: var(--text);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .intro-card p {
-    font-size: 14px;
-    line-height: 1.75;
-    color: var(--text-soft);
-  }
-  .intro-card p + p { margin-top: 8px; }
-  .promise-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 16px;
-  }
-  .promise-pill {
-    background: var(--sky-light);
-    color: var(--sky);
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 700;
-    border: 1.5px solid var(--sky-mid);
-  }
-
-  /* ── URGENT BANNER ── */
-  .urgent-banner {
-    max-width: 720px;
-    margin: 16px auto 0;
-    background: var(--rose-light);
-    border: 2px solid var(--rose);
-    border-radius: var(--radius);
-    padding: 18px 22px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .urgent-banner .icon { font-size: 28px; flex-shrink: 0; }
-  .urgent-banner strong { color: var(--rose); font-size: 15px; display: block; margin-bottom: 4px; }
-  .urgent-banner p { font-size: 13px; color: var(--text-soft); }
-
-  /* ── FORM WRAPPER ── */
-  .form-wrap {
-    max-width: 720px;
-    margin: 24px auto 0;
-    padding: 0 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  /* ── SECTION CARD ── */
-  .section-card {
-    background: var(--white);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    transition: box-shadow .2s;
-  }
-  .section-card:focus-within {
-    box-shadow: 0 6px 32px rgba(91,164,207,0.2);
-  }
-  .section-header {
-    padding: 18px 24px 14px;
-    border-bottom: 1.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .section-num {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: var(--sky);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 900;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .section-header h3 { font-size: 16px; font-weight: 800; color: var(--text); }
-  .section-header p { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
-  .section-body { padding: 22px 24px; display: flex; flex-direction: column; gap: 20px; }
-
-  /* ── FIELD ── */
-  .field { display: flex; flex-direction: column; gap: 8px; }
-  .field-label {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .req { color: var(--rose); font-size: 13px; }
-  .opt-tag {
-    background: var(--green-light);
-    color: var(--green);
-    font-size: 11px;
-    font-weight: 700;
-    border-radius: 999px;
-    padding: 2px 8px;
-  }
-  .field-hint { font-size: 12px; color: var(--text-soft); }
-
-  input[type="text"],
-  input[type="date"],
-  select,
-  textarea {
-    width: 100%;
-    font-family: 'Nunito', sans-serif;
-    font-size: 14px;
-    color: var(--text);
-    background: var(--bg);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    outline: none;
-    transition: border-color .2s, background .2s;
-  }
-  input[type="text"]:focus,
-  input[type="date"]:focus,
-  select:focus,
-  textarea:focus {
-    border-color: var(--sky);
-    background: var(--white);
-  }
-  textarea { resize: vertical; min-height: 100px; }
-
-  /* ── RADIO & CHECKBOX ── */
-  .options-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 10px;
-  }
-  .options-col { display: flex; flex-direction: column; gap: 10px; }
-
-  .opt-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--bg);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
-    cursor: pointer;
-    transition: all .15s;
-    user-select: none;
-  }
-  .opt-item:hover { border-color: var(--sky); background: var(--sky-light); }
-  .opt-item input { display: none; }
-  .opt-item input:checked ~ .opt-box { background: var(--sky); border-color: var(--sky); }
-  .opt-item input:checked ~ .opt-box::after { opacity: 1; }
-  .opt-item:has(input:checked) { border-color: var(--sky); background: var(--sky-light); }
-
-  .opt-box {
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    border: 2.5px solid var(--border);
-    background: var(--white);
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .15s;
-    position: relative;
-  }
-  .opt-box::after {
-    content: '';
-    width: 8px; height: 8px;
-    background: #fff;
-    border-radius: 50%;
-    opacity: 0;
-    transition: opacity .15s;
-  }
-
-  .chk-box {
-    width: 20px; height: 20px;
-    border-radius: 6px;
-    border: 2.5px solid var(--border);
-    background: var(--white);
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .15s;
-  }
-  .opt-item input[type="checkbox"]:checked ~ .chk-box {
-    background: var(--teal);
-    border-color: var(--teal);
-  }
-  .opt-item input[type="checkbox"]:checked ~ .chk-box::after {
-    content: '✓';
-    color: #fff;
-    font-size: 13px;
-    font-weight: 900;
-  }
-  .opt-item:has(input[type="checkbox"]:checked) { border-color: var(--teal); background: var(--teal-light); }
-
-  .opt-label { font-size: 14px; font-weight: 600; }
-  .opt-emoji { font-size: 18px; }
-
-  /* row layout for grid of 2 */
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 480px) { .row2 { grid-template-columns: 1fr; } }
-
-  /* ── ANONYMOUS TOGGLE ── */
-  .anon-box {
-    background: var(--purple-light);
-    border: 2px solid var(--purple);
-    border-radius: var(--radius);
-    padding: 18px 22px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .anon-icon { font-size: 32px; flex-shrink: 0; }
-  .anon-text strong { font-size: 15px; color: var(--purple); }
-  .anon-text p { font-size: 13px; color: var(--text-soft); margin-top: 3px; }
-
-  .toggle-wrap { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-shrink: 0; }
-  .toggle-input { display: none; }
-  .toggle-track {
-    width: 52px; height: 28px;
-    background: var(--border);
-    border-radius: 999px;
-    position: relative;
-    cursor: pointer;
-    transition: background .2s;
-  }
-  .toggle-input:checked + .toggle-track { background: var(--purple); }
-  .toggle-thumb {
-    position: absolute;
-    top: 4px; left: 4px;
-    width: 20px; height: 20px;
-    background: #fff;
-    border-radius: 50%;
-    transition: transform .2s;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  }
-  .toggle-input:checked + .toggle-track .toggle-thumb { transform: translateX(24px); }
-  .toggle-label { font-size: 13px; font-weight: 700; color: var(--purple); }
-
-  /* ── URGENT SECTION ── */
-  .urgent-section {
-    background: var(--rose-light);
-    border: 2.5px solid var(--rose);
-  }
-  .urgent-section .section-num { background: var(--rose); }
-  .urgent-section .section-header { border-bottom-color: #f5c6c6; }
-  .urgent-opt:has(input:checked) { border-color: var(--rose) !important; background: var(--rose-light) !important; }
-  .urgent-opt input:checked ~ .opt-box { background: var(--rose) !important; border-color: var(--rose) !important; }
-
-  /* ── SUBMIT ── */
-  .submit-area {
-    background: var(--white);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 28px 24px;
-    text-align: center;
-  }
-  .submit-note { font-size: 13px; color: var(--text-soft); margin-bottom: 18px; }
-  .submit-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: linear-gradient(135deg, var(--sky), var(--teal));
-    color: #fff;
-    font-family: 'Nunito', sans-serif;
-    font-size: 17px;
-    font-weight: 900;
-    border: none;
-    border-radius: 14px;
-    padding: 16px 40px;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(56,168,157,0.3);
-    transition: transform .15s, box-shadow .15s;
-    letter-spacing: 0.3px;
-  }
-  .submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(56,168,157,0.4);
-  }
-  .submit-btn:active { transform: translateY(0); }
-
-  /* ── SUCCESS ── */
-  .success-screen {
-    display: none;
-    max-width: 720px;
-    margin: 24px auto 0;
-    padding: 0 16px;
-  }
-  .success-card {
-    background: var(--white);
-    border-radius: 20px;
-    box-shadow: var(--shadow);
-    padding: 48px 32px;
-    text-align: center;
-  }
-  .success-icon { font-size: 72px; margin-bottom: 20px; animation: bounce .5s; }
-  @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
-  .success-card h2 { font-size: 24px; font-weight: 900; color: var(--teal); margin-bottom: 12px; }
-  .success-card p { font-size: 15px; color: var(--text-soft); line-height: 1.7; }
-
-  /* misc */
-  .divider { height: 1.5px; background: var(--border); border-radius: 999px; }
-  .anon-fields { transition: opacity .3s, max-height .3s; overflow: hidden; }
-</style>
-</head>
-<body>
-
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-icon">🛡️</div>
-  <h1>Дээрэлхэлт Мэдээлэх Форм</h1>
-  <p class="hero-sub">Аюулгүй · Нууцлалтай · Таны талд байна</p>
-</div>
-
-<!-- INTRO CARD -->
-<div class="intro-card">
-  <h2>💛 Энд хандсанд баярлалаа</h2>
-  <p>
-    Энэ форм нь чамд аюулгүй, хэн ч мэдэхгүй газар өөрийн болон найзынхаа талаар мэдэгдэх боломжийг олгодог.
-    Чиний бичсэн мэдээлэл зөвхөн сургуулийн мэдэгдсэн багш, удирдлагад хүрнэ — өөр хэнд ч дамжихгүй.
-  </p>
-  <p>
-    Та нэрээ бичих эсвэл нууцлах эрхтэй. Аль ч тохиолдолд бид чамд тусалхыг хүсдэг. 💙
-  </p>
-  <div class="promise-row">
-    <span class="promise-pill">🔒 Нууцлалтай</span>
-    <span class="promise-pill">🧡 Шүүмжлэлгүй</span>
-    <span class="promise-pill">🏫 Сургуульд мэдэгдэнэ</span>
-    <span class="promise-pill">✅ Тусламж авах боломжтой</span>
-  </div>
-</div>
-
-<!-- URGENT HOTLINE BANNER -->
-<div class="urgent-banner" style="max-width:720px;margin:16px auto 0;margin-left:auto;margin-right:auto;">
-  <span class="icon">🆘</span>
-  <div>
-    <strong>Яаралтай тусламж хэрэгтэй бол</strong>
-    <p>Шууд багш эсвэл сургуулийн нийгмийн ажилтантай холбогдоорой.<br>
-    Хүүхдийн утас: <strong>108</strong> &nbsp;|&nbsp; Цагдаа: <strong>102</strong></p>
-  </div>
-</div>
-
-<!-- MAIN FORM -->
-<div id="formWrap"><form class="form-wrap" id="reportForm" action="https://formspree.io/f/xojkreqk" method="POST" onsubmit="handleSubmit(event)">
-<input type="hidden" name="_replyto" value="M24MD2041@ufe.edu.mn">
-<input type="hidden" name="_subject" value="🛡️ Шинэ дээрэлхэлтийн мэдэгдэл ирлээ">
-<input type="hidden" name="_language" value="mn">
-
-  <!-- ── SECTION 0: ANONYMOUS TOGGLE ── -->
-  <div class="anon-box">
-    <span class="anon-icon">🎭</span>
-    <div class="anon-text">
-      <strong>Нэрээ нууцлах уу?</strong>
-      <p>Тохируулгыг асааж нэрээ хэлэхгүй байж болно.</p>
-    </div>
-    <div class="toggle-wrap">
-      <input type="checkbox" class="toggle-input" id="anonToggle" onchange="toggleAnon(this)">
-      <label class="toggle-track" for="anonToggle">
-        <span class="toggle-thumb"></span>
-      </label>
-      <span class="toggle-label">Нууцлах</span>
-    </div>
-  </div>
-
-  <!-- ── SECTION 1: ТУХАЙН СУРАГЧ ── -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-num">1</div>
-      <div>
-        <h3>Таны мэдээлэл</h3>
-        <p>Та болон нөхцөл байдлын талаарх үндсэн мэдээлэл</p>
-      </div>
-    </div>
-    <div class="section-body">
-
-      <div class="anon-fields" id="anonFields">
-        <div class="row2">
-          <div class="field">
-            <label class="field-label">
-              Нэр, овог
-              <span class="opt-tag">Заавал биш</span>
-            </label>
-            <input type="text" placeholder="Жишээ: Болд Батаа">
-          </div>
-          <div class="field">
-            <label class="field-label">
-              Хүйс <span class="req">*</span>
-            </label>
-            <div class="options-grid" style="grid-template-columns:1fr 1fr 1fr;">
-              <label class="opt-item">
-                <input type="radio" name="gender" value="male" required>
-                <span class="opt-box"></span>
-                <span class="opt-label">👦 Хөвгүүн</span>
-              </label>
-              <label class="opt-item">
-                <input type="radio" name="gender" value="female">
-                <span class="opt-box"></span>
-                <span class="opt-label">👧 Охин</span>
-              </label>
-              <label class="opt-item">
-                <input type="radio" name="gender" value="other">
-                <span class="opt-box"></span>
-                <span class="opt-label">🌈 Бусад</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row2">
-        <div class="field">
-          <label class="field-label">Анги <span class="req">*</span></label>
-          <select required>
-            <option value="">— Анги сонгох —</option>
-            <option>1-р анги</option><option>2-р анги</option><option>3-р анги</option>
-            <option>4-р анги</option><option>5-р анги</option><option>6-р анги</option>
-            <option>7-р анги</option><option>8-р анги</option><option>9-р анги</option>
-            <option>10-р анги</option><option>11-р анги</option><option>12-р анги</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="field-label">Бүлэг <span class="req">*</span></label>
-          <select required>
-            <option value="">— Бүлэг сонгох —</option>
-            <option>А бүлэг</option><option>Б бүлэг</option><option>В бүлэг</option>
-            <option>Г бүлэг</option><option>Д бүлэг</option><option>Е бүлэг</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Энэ мэдэгдлийг хэн мэдэгдэж байна? <span class="req">*</span></label>
-        <div class="options-col">
-          <label class="opt-item">
-            <input type="radio" name="reporter" value="self" required>
-            <span class="opt-box"></span>
-            <span class="opt-emoji">🙋</span>
-            <span class="opt-label">Өөрөө дээрэлхэгдэж байгаа</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="reporter" value="friend">
-            <span class="opt-box"></span>
-            <span class="opt-emoji">👫</span>
-            <span class="opt-label">Найзынхаа талаар мэдэгдэж байгаа</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="reporter" value="witness">
-            <span class="opt-box"></span>
-            <span class="opt-emoji">👀</span>
-            <span class="opt-label">Гэрч болсон</span>
-          </label>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SECTION 2: ДЭЭРЭЛХЭЛТИЙН ТӨРӨЛ ── -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-num">2</div>
-      <div>
-        <h3>Дээрэлхэлтийн төрөл</h3>
-        <p>Болсон зүйлийг тодорхойлоорой — нэгээс олон сонгож болно</p>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="options-grid">
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="verbal">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">💬</span>
-          <span class="opt-label">Хэл амаар (доромжлол, дооглол)</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="physical">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">👊</span>
-          <span class="opt-label">Бие махбодийн (зодох, түлхэх)</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="cyber">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">📱</span>
-          <span class="opt-label">Цахим (онлайн доромжлол, зургийг тараах)</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="exclusion">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">🚫</span>
-          <span class="opt-label">Гадуурхалт (тоохгүй байх, хамт нааддаггүй)</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="property">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">🎒</span>
-          <span class="opt-label">Эд хөрөнгийн (зүйл авах, устгах)</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="threat">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">⚠️</span>
-          <span class="opt-label">Заналхийлэл, айлган сүрдүүлэлт</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="discrimination">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">🌍</span>
-          <span class="opt-label">Үндэс, гадаад төрхийн хавчлага</span>
-        </label>
-        <label class="opt-item">
-          <input type="checkbox" name="type" value="other">
-          <span class="chk-box"></span>
-          <span class="opt-emoji">📝</span>
-          <span class="opt-label">Бусад</span>
-        </label>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Энэ ямар давтамжтай болж байна? <span class="req">*</span></label>
-        <div class="options-grid" style="grid-template-columns:1fr 1fr;">
-          <label class="opt-item">
-            <input type="radio" name="frequency" value="once" required>
-            <span class="opt-box"></span>
-            <span class="opt-label">Нэг удаа болсон</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="frequency" value="few">
-            <span class="opt-box"></span>
-            <span class="opt-label">Хэд хэдэн удаа болсон</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="frequency" value="weekly">
-            <span class="opt-box"></span>
-            <span class="opt-label">Долоо хоног бүр болдог</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="frequency" value="daily">
-            <span class="opt-box"></span>
-            <span class="opt-label">Өдөр бүр болдог</span>
-          </label>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SECTION 3: БОЛСОН НӨХЦӨЛ ── -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-num">3</div>
-      <div>
-        <h3>Болсон нөхцөл байдал</h3>
-        <p>Хаана, хэзээ болсон тухай мэдээлэл</p>
-      </div>
-    </div>
-    <div class="section-body">
-
-      <div class="row2">
-        <div class="field">
-          <label class="field-label">Болсон огноо <span class="opt-tag">Ойролцоо байж болно</span></label>
-          <input type="date">
-        </div>
-        <div class="field">
-          <label class="field-label">Болсон газар <span class="req">*</span></label>
-          <select required>
-            <option value="">— Газар сонгох —</option>
-            <option>Анги дотор</option>
-            <option>Хоолны газар (буфет)</option>
-            <option>Ариун цэврийн өрөө</option>
-            <option>Тамхины өрөө</option>
-            <option>Сургуулийн талбай</option>
-            <option>Сургуулийн коридор</option>
-            <option>Сургуулийн гадна</option>
-            <option>Онлайн орчинд (интернет)</option>
-            <option>Бусад</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Болсон зүйлийг дэлгэрэнгүй тайлбарлаарай <span class="req">*</span></label>
-        <p class="field-hint">Чадах чинээгээрээ тодорхой бичсэн тусмаа бид тусалж чадна. Хэн ч чамайг буруутгахгүй. 💙</p>
-        <textarea placeholder="Жишээ: ... анги дотор ... нэртэй хүүхэд надад ... гэж хэлсэн, ... хийсэн ..." required></textarea>
-      </div>
-
-      <div class="field">
-        <label class="field-label">🧑‍🤝‍🧑 Гэрч байсан уу?</label>
-        <div class="options-grid" style="grid-template-columns:1fr 1fr 1fr;">
-          <label class="opt-item">
-            <input type="radio" name="witness" value="yes">
-            <span class="opt-box"></span>
-            <span class="opt-label">Тийм, байсан</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="witness" value="no">
-            <span class="opt-box"></span>
-            <span class="opt-label">Байгаагүй</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="witness" value="unknown">
-            <span class="opt-box"></span>
-            <span class="opt-label">Мэдэхгүй</span>
-          </label>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SECTION 4: ДЭЭРЭЛХЭГЧ ── -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-num">4</div>
-      <div>
-        <h3>Дээрэлхэгчийн мэдээлэл</h3>
-        <p>Мэдэж байгаа зүйлийг л бичих хэрэгтэй — заавал биш</p>
-      </div>
-    </div>
-    <div class="section-body">
-
-      <div class="row2">
-        <div class="field">
-          <label class="field-label">Нэр <span class="opt-tag">Заавал биш</span></label>
-          <input type="text" placeholder="Нэр мэдэж байвал бичнэ үү">
-        </div>
-        <div class="field">
-          <label class="field-label">Анги, бүлэг <span class="opt-tag">Заавал биш</span></label>
-          <input type="text" placeholder="Жишээ: 8А эсвэл 9-р анги">
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Хүйс <span class="opt-tag">Заавал биш</span></label>
-        <div class="options-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;">
-          <label class="opt-item">
-            <input type="radio" name="bullyGender" value="male">
-            <span class="opt-box"></span>
-            <span class="opt-label">👦 Хөвгүүн</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="bullyGender" value="female">
-            <span class="opt-box"></span>
-            <span class="opt-label">👧 Охин</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="bullyGender" value="group">
-            <span class="opt-box"></span>
-            <span class="opt-label">👥 Бүлэг</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="bullyGender" value="unknown">
-            <span class="opt-box"></span>
-            <span class="opt-label">❓ Мэдэхгүй</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Нэмэлт тодорхойлолт <span class="opt-tag">Заавал биш</span></label>
-        <p class="field-hint">Харагдах байдал, хамт байсан хүмүүс г.м — мэдэж байгаа бол бичнэ үү</p>
-        <textarea placeholder="Жишээ: Ерөнхийдөө 3 хүүхэд байдаг, нэг нь цагаан малгайтай байдаг..." style="min-height:80px;"></textarea>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SECTION 5: ЯАРАЛТАЙ ТУСЛАМЖ ── -->
-  <div class="section-card urgent-section">
-    <div class="section-header">
-      <div class="section-num">🆘</div>
-      <div>
-        <h3>Яаралтай тусламж хэрэгтэй эсэх</h3>
-        <p>Чиний аюулгүй байдал маш чухал</p>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="field">
-        <label class="field-label">Одоо яаралтай тусламж хэрэгтэй байна уу? <span class="req">*</span></label>
-        <div class="options-col">
-          <label class="opt-item urgent-opt">
-            <input type="radio" name="urgent" value="yes_urgent" required>
-            <span class="opt-box"></span>
-            <span class="opt-emoji">🚨</span>
-            <span class="opt-label">Тийм — яаралтай тусламж хэрэгтэй (эрүүл мэнд, аюул)</span>
-          </label>
-          <label class="opt-item urgent-opt">
-            <input type="radio" name="urgent" value="yes_soon">
-            <span class="opt-box"></span>
-            <span class="opt-emoji">⚡</span>
-            <span class="opt-label">Удахгүй тусламж хэрэгтэй (их санаа зовж байна)</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="urgent" value="no_report">
-            <span class="opt-box"></span>
-            <span class="opt-emoji">📋</span>
-            <span class="opt-label">Яаралтай биш, зүгээр л мэдэгдэж байна</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Одоо өөрийгөө хэрхэн мэдэрч байна? <span class="opt-tag">Заавал биш</span></label>
-        <div class="options-grid">
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="scared">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">😨</span>
-            <span class="opt-label">Айж байна</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="sad">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">😢</span>
-            <span class="opt-label">Гунигтай байна</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="angry">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">😠</span>
-            <span class="opt-label">Уурлаж байна</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="confused">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">😕</span>
-            <span class="opt-label">Эргэлзэж байна</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="ok">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">😐</span>
-            <span class="opt-label">Хэвийн байна</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="feeling" value="brave">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">💪</span>
-            <span class="opt-label">Зоригтой мэдэгдэж байна</span>
-          </label>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SECTION 6: НЭМЭЛТ ── -->
-  <div class="section-card">
-    <div class="section-header">
-      <div class="section-num">6</div>
-      <div>
-        <h3>Нэмэлт мэдээлэл</h3>
-        <p>Бусад хэлэхийг хүссэн зүйл</p>
-      </div>
-    </div>
-    <div class="section-body">
-
-      <div class="field">
-        <label class="field-label">Өмнө нь мэдэгдэж байсан уу?</label>
-        <div class="options-grid" style="grid-template-columns:1fr 1fr;">
-          <label class="opt-item">
-            <input type="radio" name="prevReport" value="yes">
-            <span class="opt-box"></span>
-            <span class="opt-label">Тийм, мэдэгдсэн</span>
-          </label>
-          <label class="opt-item">
-            <input type="radio" name="prevReport" value="no">
-            <span class="opt-box"></span>
-            <span class="opt-label">Үгүй, анх удаа</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Нотлох баримт байна уу? <span class="opt-tag">Заавал биш</span></label>
-        <div class="options-grid">
-          <label class="opt-item">
-            <input type="checkbox" name="evidence" value="screenshot">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">📸</span>
-            <span class="opt-label">Зурагт дэлгэцийн хэвлэл (screenshot)</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="evidence" value="message">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">💬</span>
-            <span class="opt-label">Мессеж, чат</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="evidence" value="video">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">🎥</span>
-            <span class="opt-label">Видео, аудио</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="evidence" value="witness_name">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">🧑</span>
-            <span class="opt-label">Гэрчийн нэр бий</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Бид чамд ямар тусламж үзүүлэх вэ? <span class="opt-tag">Заавал биш</span></label>
-        <div class="options-col">
-          <label class="opt-item">
-            <input type="checkbox" name="help" value="talk">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">🗣️</span>
-            <span class="opt-label">Багш / сэтгэл зүйчтэй ярилцуулах</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="help" value="mediation">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">🤝</span>
-            <span class="opt-label">Дээрэлхэгчтэй зохицуулалт хийх</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="help" value="parents">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">👨‍👩‍👧</span>
-            <span class="opt-label">Эцэг эхэд мэдэгдэх</span>
-          </label>
-          <label class="opt-item">
-            <input type="checkbox" name="help" value="anonymous_only">
-            <span class="chk-box"></span>
-            <span class="opt-emoji">📋</span>
-            <span class="opt-label">Зүгээр л бүртгэгдэх хүсэлтэй, шууд арга хэмжээ хэрэггүй</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Нэмэлт хэлэхийг хүссэн зүйл байна уу? <span class="opt-tag">Заавал биш</span></label>
-        <textarea placeholder="Энд чөлөөтэй бичнэ үү — ямар ч зүйл хэлж болно, шүүмжлэхгүй..."></textarea>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ── SUBMIT ── -->
-  <div class="submit-area">
-    <p class="submit-note">
-      🔒 Таны мэдэгдэл зөвхөн сургуулийн эрх бүхий багш, нийгмийн ажилтанд хүрнэ.<br>
-      Форм илгээсний дараа нэмэлт асуулт байвал чамтай холбогдож болно.
-    </p>
-    <button type="button" class="submit-btn" onclick="handleSubmit()">✉️ Мэдэгдэл илгээх</button>
-  </div>
-
-</form>
-
-<!-- SUCCESS SCREEN -->
-<div class="success-screen" id="successScreen">
-  <div class="success-card">
-    <div class="success-icon">🛡️</div>
-    <h2>Баярлалаа, зоригтой байсан!</h2>
-    <p>
-      Чиний мэдэгдэл амжилттай илгээгдлээ. 💙<br><br>
-      Сургуулийн эрх бүхий хүмүүс 24 цагийн дотор энэ асуудлыг хянана.<br>
-      Хэрэв яаралтай тусламж хэрэгтэй бол <strong>108</strong> эсвэл <strong>102</strong> дугаарт залга.
-    </p>
-    <div style="margin-top:24px;">
-      <button onclick="resetForm()" style="background:var(--sky-light);color:var(--sky);border:2px solid var(--sky-mid);border-radius:10px;padding:12px 28px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">
-        ← Буцах
-      </button>
-    </div>
-  </div>
-</div>
-
-<script>
-  function toggleAnon(el) {
-    var f = document.getElementById('anonFields');
-    f.style.opacity = el.checked ? '0.3' : '1';
-    f.style.pointerEvents = el.checked ? 'none' : 'auto';
-  }
-
-  function getRadio(name) {
-    var el = document.querySelector('input[name="' + name + '"]:checked');
-    return el ? el.value : 'Хоосон';
-  }
-
-  function getCheckboxes(name) {
-    var checked = document.querySelectorAll('input[name="' + name + '"]:checked');
-    if (!checked.length) return 'Хоосон';
-    var vals = [];
-    for (var i = 0; i < checked.length; i++) vals.push(checked[i].value);
-    return vals.join(', ');
-  }
-
-  function v(id) {
-    var el = document.getElementById(id);
-    return el ? (el.value.trim() || 'Хоосон') : 'Хоосон';
-  }
-
-  function buildSummary() {
-    var isAnon = document.getElementById('anonToggle').checked;
-    var s = '';
-    s += '=== ДЭЭРЭЛХЭЛТИЙН МЭДЭГДЭЛ ===
-
-';
-    s += '[ 1. МЭДЭГДЭГЧИЙН МЭДЭЭЛЭЛ ]
-';
-    s += 'Нэрээ нууцалсан  : ' + (isAnon ? 'Тийм' : 'Үгүй') + '
-';
-    if (!isAnon) {
-      s += 'Нэр, овог        : ' + v('f_ner') + '
-';
-      s += 'Хүйс             : ' + getRadio('gender') + '
-';
+}
+
+function saveRecord(data, now, pct){
+  const last=document.getElementById('lastName').value.trim();
+  const first=document.getElementById('firstName').value.trim();
+  const code=document.getElementById('empCode').value.trim();
+  const comp=document.getElementById('company').value;
+  const corr=S.questions.filter((q,i)=>S.answers[i]===q.ans).length;
+  const rec={
+    id:Date.now(),lastName:last,firstName:first,empCode:code,company:comp,
+    examKey:S.examKey,examType:EXAMS[S.examKey].label,
+    score:S.score,total:S.total,pct,passed:S.passed,correctCount:corr,
+    date:now.toLocaleString('mn-MN'),dateISO:now.toISOString(),
+    answers:[...S.answers],sig:S.sig
+  };
+  const recs=getRecs();recs.push(rec);saveRecs(recs);
+}
+
+// ═══════════════════════════════════════════════
+// PDF
+// ═══════════════════════════════════════════════
+function buildAndDownloadPDF(manual=false){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,M=18;let y=20;
+  const t=(tx,x,yy,o)=>{try{doc.text(String(tx||''),x,yy,o||{});}catch(e){}};
+
+  doc.setFillColor(10,14,26);doc.rect(0,0,W,297,'F');
+  doc.setFillColor(17,24,39);doc.rect(0,0,W,55,'F');
+  doc.setFillColor(245,158,11);doc.rect(0,53,W,2,'F');
+  doc.setTextColor(245,158,11);doc.setFontSize(7);doc.setFont('helvetica','bold');
+  t('MSM GROUP LLC  |  HSE SAFETY EXAM',M,13);
+  doc.setFontSize(17);t('Health, Safety & Environment',M,27);
+  doc.setTextColor(100,116,139);doc.setFontSize(8.5);doc.setFont('helvetica','normal');
+  t('Аюулгүй байдлын сургалтын шалгалт — Дүнгийн тайлан',M,37);
+  const now=new Date();
+  doc.setFontSize(8);t(now.toLocaleDateString('mn-MN')+'  '+now.toLocaleTimeString('mn-MN',{hour:'2-digit',minute:'2-digit'}),W-M,13,{align:'right'});
+
+  y=63;
+  const last=document.getElementById('lastName').value.trim();
+  const first=document.getElementById('firstName').value.trim();
+  const code=document.getElementById('empCode').value.trim();
+  const comp=document.getElementById('company').value;
+  doc.setFillColor(17,24,39);doc.roundedRect(M,y,W-M*2,46,4,4,'F');
+  doc.setDrawColor(42,53,72);doc.roundedRect(M,y,W-M*2,46,4,4,'S');
+  doc.setTextColor(100,116,139);doc.setFontSize(7);doc.setFont('helvetica','normal');t('АЖИЛТНЫ МЭДЭЭЛЭЛ',M+6,y+9);
+  doc.setTextColor(245,158,11);doc.setFontSize(13);doc.setFont('helvetica','bold');t(last+' '+first,M+6,y+20);
+  doc.setTextColor(100,116,139);doc.setFontSize(8);doc.setFont('helvetica','normal');
+  t('Ажилтны код: '+code+'   |   Компани: '+comp,M+6,y+29);
+  t('Шалгалтын төрөл: '+EXAMS[S.examKey].label,M+6,y+37);
+  t('Огноо: '+now.toLocaleString('mn-MN'),M+6,y+45);
+  y+=54;
+
+  const pct=Math.round(S.score/S.total*100),pass=S.passed;
+  doc.setFillColor(pass?16:239,pass?185:68,pass?129:68);doc.roundedRect(M,y,W-M*2,31,4,4,'F');
+  doc.setTextColor(10,14,26);doc.setFontSize(22);doc.setFont('helvetica','bold');t(pct+'%',M+10,y+21);
+  doc.setFontSize(14);t(pass?'TENSUN / PASSED':'TENSEEUGUI / FAILED',M+36,y+15);
+  doc.setFontSize(8.5);doc.setFont('helvetica','normal');
+  const corr=S.questions.filter((q,i)=>S.answers[i]===q.ans).length;
+  t(S.score+' / '+S.total+' оноо  |  '+corr+' зөв хариулт',M+36,y+24);
+  y+=39;
+
+  doc.setTextColor(245,158,11);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
+  t('АСУУЛТ БҮРИЙН ХАРИУЛТ',M,y);y+=4;
+  doc.setDrawColor(42,53,72);doc.setLineWidth(.3);doc.line(M,y,W-M,y);y+=6;
+  const L=['A','B','C','D','E','F'];
+  S.questions.forEach((q,i)=>{
+    if(y>256){doc.addPage();doc.setFillColor(10,14,26);doc.rect(0,0,W,297,'F');y=20;}
+    const ok=S.answers[i]===q.ans;
+    doc.setTextColor(100,116,139);doc.setFontSize(7);doc.setFont('helvetica','normal');
+    const ql=doc.splitTextToSize((i+1)+'. '+q.q,W-M*2-8);doc.text(ql,M+5,y+3);y+=ql.length*3.8+2;
+    if(ok){
+      doc.setTextColor(16,185,129);doc.setFont('helvetica','bold');t('OK '+L[S.answers[i]]+': ',M+7,y);
+      doc.setFont('helvetica','normal');const al=doc.splitTextToSize(q.opts[S.answers[i]],W-M*2-28);doc.text(al,M+21,y);y+=al.length*3.8+4;
+    }else{
+      doc.setTextColor(239,68,68);doc.setFont('helvetica','bold');t('X  '+L[S.answers[i]]+': ',M+7,y);
+      doc.setFont('helvetica','normal');const wl=doc.splitTextToSize(q.opts[S.answers[i]],W-M*2-28);doc.text(wl,M+21,y);y+=wl.length*3.8+1;
+      doc.setTextColor(16,185,129);doc.setFont('helvetica','bold');t('OK '+L[q.ans]+': ',M+7,y);
+      doc.setFont('helvetica','normal');const cl=doc.splitTextToSize(q.opts[q.ans],W-M*2-28);doc.text(cl,M+21,y);y+=cl.length*3.8+4;
     }
-    s += 'Анги             : ' + v('f_angi') + '
-';
-    s += 'Бүлэг            : ' + v('f_buleg') + '
-';
-    s += 'Мэдэгдэч        : ' + getRadio('reporter') + '
-';
-    s += '
-[ 2. ДЕЭРЕЛХЕЛТИИН ТӨРӨЛ ]
-';
-    s += 'Төрлүүд          : ' + getCheckboxes('type') + '
-';
-    s += 'Давтамж          : ' + getRadio('frequency') + '
-';
-    s += '
-[ 3. БОЛСОН НӨХЦӨЛ ]
-';
-    s += 'Огноо            : ' + v('f_ognoo') + '
-';
-    s += 'Газар            : ' + v('f_gazar') + '
-';
-    s += 'Гэрч байсан      : ' + getRadio('witness') + '
-';
-    s += '
-Дэлгэрэнгүй тайлбар:
-' + v('f_tailbar') + '
-';
-    s += '
-[ 4. ДЕЭРЕЛХЕГЧИИН МЕДЭЭЛЕЛ ]
-';
-    s += 'Нэр              : ' + v('f_bully_ner') + '
-';
-    s += 'Анги, бүлэг      : ' + v('f_bully_angi') + '
-';
-    s += 'Хүйс             : ' + getRadio('bullyGender') + '
-';
-    s += '
-Нэмэлтэл тодорхойлолт:
-' + v('f_bully_todorh') + '
-';
-    s += '
-[ 5. ЯААРАЛТАЙ ТУСЛАМЖ ]
-';
-    s += 'Яааралтай эсэх    : ' + getRadio('urgent') + '
-';
-    s += 'Мэдрэмж          : ' + getCheckboxes('feeling') + '
-';
-    s += '
-[ 6. НЕМЭЛТЭЛ МЕДЭЭЛЕЛ ]
-';
-    s += 'Өмнө мэдэгдсэн   : ' + getRadio('prevReport') + '
-';
-    s += 'Нотлох баримт    : ' + getCheckboxes('evidence') + '
-';
-    s += 'Хэрэгтэй туслам  : ' + getCheckboxes('help') + '
-';
-    s += '
-Нэмэлтэл тайлбар:
-' + v('f_nemeltel') + '
-';
-    s += '
-================================
-';
-    return s;
-  }
+  });
 
-  function validate() {
-    if (v('f_angi') === 'Хоосон') { alert('Анги сонгоно уу!'); return false; }
-    if (v('f_buleg') === 'Хоосон') { alert('Бүлэг сонгоно уу!'); return false; }
-    if (getRadio('reporter') === 'Хоосон') { alert('Мэдэгдэгчийг сонгоно уу!'); return false; }
-    if (getRadio('frequency') === 'Хоосон') { alert('Давтамж сонгоно уу!'); return false; }
-    if (v('f_gazar') === 'Хоосон') { alert('Болсон газар сонгоно уу!'); return false; }
-    var tb = document.getElementById('f_tailbar');
-    if (!tb || !tb.value.trim()) { alert('Дэлгэрэнгүй тайлбар бичнэ үү!'); return false; }
-    if (getRadio('urgent') === 'Хоосон') { alert('Яааралтай эсэхийг сонгоно уу!'); return false; }
-    return true;
-  }
+  // Sig page
+  doc.addPage();doc.setFillColor(10,14,26);doc.rect(0,0,W,297,'F');
+  doc.setFillColor(17,24,39);doc.rect(0,0,W,33,'F');doc.setFillColor(245,158,11);doc.rect(0,31,W,2,'F');
+  doc.setTextColor(245,158,11);doc.setFontSize(13);doc.setFont('helvetica','bold');t('ГАРЫН ҮСЭГ / DIGITAL SIGNATURE',M,19);
+  doc.setTextColor(100,116,139);doc.setFontSize(8);doc.setFont('helvetica','normal');t(last+' '+first+'  |  '+now.toLocaleString('mn-MN'),M,27);
+  doc.setFillColor(28,35,51);doc.roundedRect(M,43,W-M*2,61,4,4,'F');
+  doc.setDrawColor(42,53,72);doc.roundedRect(M,43,W-M*2,61,4,4,'S');
+  if(S.sig){try{doc.addImage(S.sig,'PNG',M+4,45,W-M*2-8,57);}catch(e){}}
+  doc.setTextColor(100,116,139);doc.setFontSize(7);
+  t(last+' '+first+' ажилтан '+now.toLocaleString('mn-MN')+' цагт гарын үсгээ зурсан.',M,115);
+  y=128;
+  doc.setFillColor(17,24,39);doc.roundedRect(M,y,W-M*2,48,4,4,'F');
+  doc.setDrawColor(245,158,11,.3);doc.roundedRect(M,y,W-M*2,48,4,4,'S');
+  doc.setTextColor(245,158,11);doc.setFontSize(8);doc.setFont('helvetica','bold');t('МЭДЭГДЭЛ / DECLARATION',M+6,y+10);
+  doc.setTextColor(100,116,139);doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+  doc.text(doc.splitTextToSize('Би '+last+' '+first+', MSM Group LLC-ийн HSE аюулгүй байдлын сургалтын шалгалтад оролцсон бөгөөд гарын үсгээрээ баталгаажуулж байна.',W-M*2-12),M+6,y+20);
+  doc.text(doc.splitTextToSize('I, '+last+' '+first+', confirm my voluntary participation in the MSM Group LLC HSE Safety Training Exam.',W-M*2-12),M+6,y+33);
 
-  function handleSubmit() {
-    if (!validate()) return;
-    var btn = document.querySelector('.submit-btn');
-    btn.innerHTML = 'Илгээж байна...';
-    btn.disabled = true;
+  const fname=`HSE_${last}_${first}_${now.toISOString().slice(0,10)}.pdf`;
+  doc.save(fname);
+  if(!manual){
+    document.getElementById('pdfStatus').className='status-box ok';
+    document.getElementById('pdfMsg').textContent='✓ PDF автоматаар татагдлаа: '+fname;
+  }else{toast('PDF татагдлаа','ok');}
+}
 
-    var summary = buildSummary();
-    var formData = new FormData();
-    formData.append('_replyto', 'M24MD2041@ufe.edu.mn');
-    formData.append('_subject', 'Дээрэлхэлтийн шинэ мэдэгдэл ирлээ');
-    formData.append('Мэдэгдлийн дэлгэрэнгүй', summary);
+// ═══════════════════════════════════════════════
+// ADMIN PANEL
+// ═══════════════════════════════════════════════
+function openAdmin(){document.getElementById('adminModal').classList.remove('hidden');renderRecs();}
+function closeAdmin(){document.getElementById('adminModal').classList.add('hidden');}
+document.getElementById('adminModal').addEventListener('click',e=>{if(e.target===document.getElementById('adminModal'))closeAdmin();});
+function toggleFormsGuide(){document.getElementById('formsGuide').classList.toggle('hidden');}
+function saveFormsUrl(){const v=document.getElementById('formsUrl').value.trim();localStorage.setItem('hse_forms_url',v);}
+function openForms(){
+  const v=document.getElementById('formsUrl').value.trim()||'https://forms.office.com/Pages/DesignPageV2.aspx?origin=NeoPortalPage&subpage=design&id='+FORMS_ID;
+  window.open(v,'_blank');
+}
 
-    fetch('https://formspree.io/f/xojkreqk', {
-      method: 'POST',
-      body: formData,
-      headers: { 'Accept': 'application/json' }
-    }).then(function(res) {
-      if (res.ok) {
-        document.getElementById('formWrap').style.display = 'none';
-        document.getElementById('successScreen').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        btn.innerHTML = 'Алдаа гарлаа. Дахин оролдоно уу.';
-        btn.disabled = false;
-      }
-    }).catch(function() {
-      btn.innerHTML = 'Интернэт холболт шалгаарай.';
-      btn.disabled = false;
-    });
-  }
+function renderRecs(){
+  const recs=getRecs();
+  document.getElementById('recCount').textContent=recs.length+' бүртгэл';
+  const wrap=document.getElementById('recTable');
+  if(!recs.length){wrap.innerHTML='<div class="empty">Одоогоор бүртгэл байхгүй.<br><span style="font-size:12px">Шалгалт дуусмагц энд харагдана.</span></div>';return;}
+  let h=`<table class="rtable"><thead><tr><th>#</th><th>Овог нэр</th><th>Код</th><th>Компани</th><th>Шалгалт</th><th>Оноо</th><th>Дүн</th><th>Огноо</th><th>PDF</th></tr></thead><tbody>`;
+  recs.slice().reverse().forEach((r,i)=>{
+    h+=`<tr>
+      <td style="color:var(--muted)">${recs.length-i}</td>
+      <td style="font-weight:600">${r.lastName} ${r.firstName}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:12px">${r.empCode}</td>
+      <td>${r.company}</td>
+      <td style="font-size:11px;color:var(--dim)">${r.examType}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${r.score}/${r.total} (${r.pct}%)</td>
+      <td><span class="${r.passed?'bp':'bf'}">${r.passed?'Тэнцсэн':'Тэнцээгүй'}</span></td>
+      <td style="font-size:11px;color:var(--muted)">${r.date}</td>
+      <td><button class="rbtn" onclick="dlRec(${r.id})">⬇</button></td>
+    </tr>`;
+  });
+  h+='</tbody></table>';wrap.innerHTML=h;
+}
 
-  function resetForm() {
-    var inputs = document.querySelectorAll('input[type=text], textarea');
-    for (var i = 0; i < inputs.length; i++) inputs[i].value = '';
-    var radios = document.querySelectorAll('input[type=radio], input[type=checkbox]');
-    for (var i = 0; i < radios.length; i++) radios[i].checked = false;
-    var selects = document.querySelectorAll('select');
-    for (var i = 0; i < selects.length; i++) selects[i].selectedIndex = 0;
-    var ognoo = document.getElementById('f_ognoo');
-    if (ognoo) ognoo.value = '';
-    var tog = document.getElementById('anonToggle');
-    if (tog) tog.checked = false;
-    toggleAnon({ checked: false });
-    document.getElementById('formWrap').style.display = 'flex';
-    document.getElementById('successScreen').style.display = 'none';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+function clearAll(){if(!confirm('Бүх бүртгэлийг устгах уу?'))return;saveRecs([]);renderRecs();toast('Устгагдлаа','ok');}
+function dlRec(id){const rec=getRecs().find(r=>r.id===id);if(!rec)return;genRecPDF(rec);}
+function exportAll(){
+  const recs=getRecs();if(!recs.length)return toast('Бүртгэл байхгүй','err');
+  toast(recs.length+' PDF татагдаж байна...','ok');
+  recs.forEach((r,i)=>setTimeout(()=>genRecPDF(r),i*900));
+}
+
+function genRecPDF(r){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,M=18;let y=20;
+  const t=(tx,x,yy,o)=>{try{doc.text(String(tx||''),x,yy,o||{});}catch(e){}};
+  doc.setFillColor(10,14,26);doc.rect(0,0,W,297,'F');
+  doc.setFillColor(17,24,39);doc.rect(0,0,W,55,'F');
+  doc.setFillColor(245,158,11);doc.rect(0,53,W,2,'F');
+  doc.setTextColor(245,158,11);doc.setFontSize(7);doc.setFont('helvetica','bold');t('MSM GROUP LLC  |  HSE SAFETY EXAM',M,13);
+  doc.setFontSize(17);t('Health, Safety & Environment',M,27);
+  doc.setTextColor(100,116,139);doc.setFontSize(8.5);doc.setFont('helvetica','normal');t('Аюулгүй байдлын сургалтын шалгалт — Дүнгийн тайлан',M,37);
+  doc.setFontSize(8);t(r.date,W-M,13,{align:'right'});
+  y=63;
+  doc.setFillColor(17,24,39);doc.roundedRect(M,y,W-M*2,46,4,4,'F');
+  doc.setDrawColor(42,53,72);doc.roundedRect(M,y,W-M*2,46,4,4,'S');
+  doc.setTextColor(100,116,139);doc.setFontSize(7);doc.setFont('helvetica','normal');t('АЖИЛТНЫ МЭДЭЭЛЭЛ',M+6,y+9);
+  doc.setTextColor(245,158,11);doc.setFontSize(13);doc.setFont('helvetica','bold');t(r.lastName+' '+r.firstName,M+6,y+20);
+  doc.setTextColor(100,116,139);doc.setFontSize(8);doc.setFont('helvetica','normal');
+  t('Ажилтны код: '+r.empCode+'   |   Компани: '+r.company,M+6,y+29);
+  t('Шалгалтын төрөл: '+r.examType,M+6,y+37);t('Огноо: '+r.date,M+6,y+45);
+  y+=54;
+  const pass=r.passed;
+  doc.setFillColor(pass?16:239,pass?185:68,pass?129:68);doc.roundedRect(M,y,W-M*2,31,4,4,'F');
+  doc.setTextColor(10,14,26);doc.setFontSize(22);doc.setFont('helvetica','bold');t(r.pct+'%',M+10,y+21);
+  doc.setFontSize(14);t(pass?'TENSUN / PASSED':'TENSEEUGUI / FAILED',M+36,y+15);
+  doc.setFontSize(8.5);doc.setFont('helvetica','normal');t(r.score+' / '+r.total+' оноо  |  '+(r.correctCount||'?')+' зөв хариулт',M+36,y+24);
+  y+=39;
+  const qs=EXAMS[r.examKey]?.questions||[];
+  doc.setTextColor(245,158,11);doc.setFontSize(7.5);doc.setFont('helvetica','bold');t('АСУУЛТ БҮРИЙН ХАРИУЛТ',M,y);y+=4;
+  doc.setDrawColor(42,53,72);doc.setLineWidth(.3);doc.line(M,y,W-M,y);y+=6;
+  const L=['A','B','C','D','E','F'];
+  qs.forEach((q,i)=>{
+    if(y>256){doc.addPage();doc.setFillColor(10,14,26);doc.rect(0,0,W,297,'F');y=20;}
+    const ok=r.answers[i]===q.ans;
+    doc.setTextColor(100,116,139);doc.setFontSize(7);doc.setFont('helvetica','normal');
+    const ql=doc.splitTextToSize((i+1)+'. '+q.q,W-M*2-8);doc.text(ql,M+5,y+3);y+=ql.length*3.8+2;
+    if(ok){
+      doc.setTextColor(16,185,129);doc.setFont('helvetica','bold');t('OK '+L[r.answers[i]]+': ',M+7,y);
+      doc.setFont('helvetica','normal');const al=doc.splitTextToSize(q.opts[r.answers[i]],W-M*2-28);doc.text(al,M+21,y);y+=al.length*3.8+4;
+    }else{
+      doc.setTextColor(239,68,68);doc.setFont('helvetica','bold');t('X  '+L[r.answers[i]]+': ',M+7,y);
+      doc.setFont('helvetica','normal');const wl=doc.splitTextToSize(q.opts[r.answers[i]],W-M*2-28);doc.text(wl,M+21,y);y+=wl.length*3.8+1;
+      doc.setTextColor(16,185,129);doc.setFont('helvetica','bold');t('OK '+L[q.ans]+': ',M+7,y);
+      doc.setFont('helvetica','normal');const cl=doc.splitTextToSize(q.opts[q.ans],W-M*2-28);doc.text(cl,M+21,y);y+=cl.length*3.8+4;
+    }
+  });
+  doc.addPage();doc.setFillColor(10,14,26);doc.rect(0,0,W,297,'F');
+  doc.setFillColor(17,24,39);doc.rect(0,0,W,33,'F');doc.setFillColor(245,158,11);doc.rect(0,31,W,2,'F');
+  doc.setTextColor(245,158,11);doc.setFontSize(13);doc.setFont('helvetica','bold');t('ГАРЫН ҮСЭГ / DIGITAL SIGNATURE',M,19);
+  doc.setTextColor(100,116,139);doc.setFontSize(8);doc.setFont('helvetica','normal');t(r.lastName+' '+r.firstName+'  |  '+r.date,M,27);
+  doc.setFillColor(28,35,51);doc.roundedRect(M,43,W-M*2,61,4,4,'F');
+  doc.setDrawColor(42,53,72);doc.roundedRect(M,43,W-M*2,61,4,4,'S');
+  if(r.sig){try{doc.addImage(r.sig,'PNG',M+4,45,W-M*2-8,57);}catch(e){}}
+  doc.setTextColor(100,116,139);doc.setFontSize(7);
+  t(r.lastName+' '+r.firstName+' ажилтан '+r.date+' цагт гарын үсгээ зурсан.',M,115);
+  doc.save(`HSE_${r.lastName}_${r.firstName}_${r.dateISO?.slice(0,10)||'record'}.pdf`);
+}
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function resetExam(){
+  clearInterval(S.timerIv);
+  S={examType:null,position:null,examKey:null,questions:[],answers:[],curQ:0,t0:null,t1:null,timerIv:null,sig:null,score:0,total:0,passed:false};
+  ['lastName','firstName','empCode'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('company').value='';
+  document.querySelectorAll('.etype').forEach(e=>e.classList.remove('sel'));
+  document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('posWrap').classList.remove('show');
+  document.getElementById('scoreRing').className='score-ring';
+  document.getElementById('scorePct').className='score-pct';
+  document.getElementById('pdfStatus').className='status-box pdf-s';
+  document.getElementById('pdfMsg').textContent='PDF бэлтгэж байна, автоматаар татагдана...';
+  document.getElementById('formsStatus').className='status-box pending';
+  document.getElementById('formsMsg').innerHTML='<div class="spin"></div> Microsoft Forms руу илгээж байна...';
+  prog(0);steps(0);show('step1');hide('step2');hide('step3');hide('step4');
+}
+function prog(p){document.getElementById('progBar').style.width=p+'%';}
+function steps(a){document.querySelectorAll('.sd').forEach((d,i)=>{d.classList.toggle('active',i===a);d.classList.toggle('done',i<a);});}
+function show(id){document.getElementById(id).classList.remove('hidden');}
+function hide(id){document.getElementById(id).classList.add('hidden');}
+function toast(msg,type=''){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.className='toast show'+(type?' t-'+type:'');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',3000);
+}
 </script>
 </body>
 </html>
