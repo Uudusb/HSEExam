@@ -6,6 +6,84 @@
 <title>MSM Group — HSE Шалгалт</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// Load Noto Sans (supports Mongolian Cyrillic) and register with jsPDF
+window._notoFontReady = false;
+window._notoFontB64 = null;
+window._notoFontBoldB64 = null;
+
+async function loadNotoFont() {
+  try {
+    // Fetch Noto Sans Regular TTF
+    const [regResp, boldResp] = await Promise.all([
+      fetch("https://fonts.gstatic.com/s/notosans/v36/o-0bIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjc5a7du3mhPy0.woff2"),
+      fetch("https://fonts.gstatic.com/s/notosans/v36/o-0NIpQlx3QUlC5A4PNjXhFVadyBx2pqPIif.woff2")
+    ]);
+    // Use ArrayBuffer then base64 encode
+    const toB64 = async (resp) => {
+      const buf = await resp.arrayBuffer();
+      let binary = '';
+      const bytes = new Uint8Array(buf);
+      for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+      return btoa(binary);
+    };
+    // Try regular TTF via Google Fonts API workaround — use a known working CDN TTF
+    const ttfResp = await fetch("https://fonts.gstatic.com/s/notosans/v36/o-0NIpQlx3QUlC5A4PNjXhFVZdyBx2pqPIif.ttf").catch(()=>null);
+    if (ttfResp && ttfResp.ok) {
+      window._notoFontB64 = await toB64(ttfResp);
+    }
+  } catch(e) { console.warn("Noto font load failed:", e); }
+}
+
+// Alternative: embed a minimal base64 Noto Sans subset via jsDelivr CDN (TTF)
+async function loadNotoFontTTF() {
+  try {
+    const urls = [
+      "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.28/files/noto-sans-cyrillic-400-normal.woff2",
+      "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.28/files/noto-sans-cyrillic-700-normal.woff2"
+    ];
+    const toB64 = async (url) => {
+      const resp = await fetch(url);
+      if (!resp.ok) return null;
+      const buf = await resp.arrayBuffer();
+      let bin = '';
+      const bytes = new Uint8Array(buf);
+      for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin);
+    };
+    const [reg, bold] = await Promise.all(urls.map(toB64));
+    window._notoFontB64 = reg;
+    window._notoFontBoldB64 = bold;
+    window._notoFontReady = !!(reg);
+  } catch(e) { console.warn("Noto TTF load failed:", e); }
+}
+
+// Register font with jsPDF — call this before building PDF
+async function ensureNotoFont() {
+  if (window._notoFontReady) return true;
+  await loadNotoFontTTF();
+  if (window._notoFontB64) {
+    try {
+      const { jsPDF } = window.jspdf;
+      // Register regular
+      jsPDF.API.events.push(['addFonts', function() {
+        this.addFileToVFS('NotoSans-Regular.woff2', window._notoFontB64);
+        this.addFont('NotoSans-Regular.woff2', 'NotoSans', 'normal');
+        if (window._notoFontBoldB64) {
+          this.addFileToVFS('NotoSans-Bold.woff2', window._notoFontBoldB64);
+          this.addFont('NotoSans-Bold.woff2', 'NotoSans', 'bold');
+        }
+      }]);
+      window._notoFontReady = true;
+      return true;
+    } catch(e) { console.warn("jsPDF font register failed:", e); }
+  }
+  return false;
+}
+
+// Start loading immediately on page load
+document.addEventListener('DOMContentLoaded', () => { loadNotoFontTTF(); });
+</script>
 <style>
 :root{
   --navy:#1e2d6b;--navy2:#2a3d8f;--orange:#e8431a;--orange2:#f05a2a;
@@ -911,184 +989,93 @@ async function uploadToOneDrive(blob){
 // ═══════════════════════════════════════════
 // PDF GENERATION — returns a Blob
 // ═══════════════════════════════════════════
-// Mongolian → Latin for PDF
+// Mongolian → Latin fallback (only used if Noto font fails to load)
 function mnLatin(s){
   if(!s) return '';
   const m={'А':'A','а':'a','Б':'B','б':'b','В':'V','в':'v','Г':'G','г':'g','Д':'D','д':'d','Е':'Ye','е':'ye','Ж':'J','ж':'j','З':'Z','з':'z','И':'I','и':'i','К':'K','к':'k','Л':'L','л':'l','М':'M','м':'m','Н':'N','н':'n','О':'O','о':'o','Ө':'O','ө':'o','П':'P','п':'p','Р':'R','р':'r','С':'S','с':'s','Т':'T','т':'t','У':'U','у':'u','Ү':'U','ү':'u','Х':'Kh','х':'kh','Ц':'Ts','ц':'ts','Ч':'Ch','ч':'ch','Ш':'Sh','ш':'sh','Э':'E','э':'e','Ю':'Yu','ю':'yu','Я':'Ya','я':'ya','✓':'v','✗':'x'};
   return s.split('').map(c=>m[c]!==undefined?m[c]:c).join('');
 }
 
-function buildPDF(){
+async function buildRecordPDF(r){
+  await ensureNotoFont();
+  const useCyrillic = window._notoFontReady;
+  const fontName = useCyrillic ? "NotoSans" : "helvetica";
   return new Promise(resolve=>{
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
     const W=210,M=18; let y=20;
-    const t=(tx,x,yy,o)=>{try{doc.text(String(tx||""),x,yy,o||{});}catch(e){}};
-    const LA=["A","B","C","D","E","F"];
-
-    const last=document.getElementById("lastName").value.trim();
-    const first=document.getElementById("firstName").value.trim();
-    const code=document.getElementById("empCode").value.trim();
-    const comp=document.getElementById("company").value;
-    const now=new Date();
-    const pct=Math.round(S.score/S.total*100);
-    const pass=S.passed;
-    const corr=S.questions.filter((q,i)=>S.answers[i]===q.ans).length;
-
-    // HEADER
-    doc.setFillColor(30,45,107);doc.rect(0,0,W,42,"F");
-    doc.setFillColor(232,67,26);doc.rect(0,42,W,4,"F");
-    try{doc.addImage(MSM_LOGO,"JPEG",M,6,28,28);}catch(e){}
-    doc.setTextColor(255,255,255);doc.setFontSize(16);doc.setFont("helvetica","bold");
-    t("HSE Safety Training Exam",M+33,18);
-    doc.setFontSize(9);doc.setFont("helvetica","normal");doc.setTextColor(180,190,220);
-    t("Health, Safety & Environment - MSM Group LLC",M+33,26);
-    t(now.toLocaleDateString("en-US"),W-M,26,{align:"right"});
-
-    y=55;
-    // Employee box
-    doc.setFillColor(238,241,248);doc.roundedRect(M,y,W-M*2,42,3,3,"F");
-    doc.setDrawColor(208,216,238);doc.roundedRect(M,y,W-M*2,42,3,3,"S");
-    doc.setTextColor(107,122,158);doc.setFontSize(7);doc.setFont("helvetica","bold");
-    t("EMPLOYEE INFORMATION",M+6,y+8);
-    doc.setTextColor(30,45,107);doc.setFontSize(13);doc.setFont("helvetica","bold");
-    t(mnLatin(last)+" "+mnLatin(first),M+6,y+18);
-    doc.setTextColor(107,122,158);doc.setFontSize(8);doc.setFont("helvetica","normal");
-    t("Code: "+mnLatin(code)+"   |   Company: "+mnLatin(comp),M+6,y+26);
-    t("Exam: "+mnLatin((LANG==="en"?EN_EXAMS:EXAMS)[S.examKey]?.label||""),M+6,y+33);
-    t("Date: "+now.toLocaleDateString("en-US")+"  "+now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}),M+6,y+40);
-
-    y+=50;
-    // Result badge
-    doc.setFillColor(pass?13:201,pass?138:40,pass?92:26);doc.roundedRect(M,y,W-M*2,28,3,3,"F");
-    doc.setTextColor(255,255,255);doc.setFontSize(22);doc.setFont("helvetica","bold");
-    t(pct+"%",M+8,y+20);
-    doc.setFontSize(14);t(pass?"TENSUN / PASSED":"TENSEEUGUI / FAILED",M+34,y+14);
-    doc.setFontSize(8);doc.setFont("helvetica","normal");
-    t(S.score+"/"+S.total+" pts  |  "+corr+" correct answers",M+34,y+22);
-
-    y+=36;
-    // Answer review header
-    doc.setFillColor(238,241,248);doc.rect(0,y,W,8,"F");
-    doc.setTextColor(30,45,107);doc.setFontSize(7.5);doc.setFont("helvetica","bold");
-    t("ANSWER REVIEW",M,y+5);
-    doc.setDrawColor(208,216,238);doc.setLineWidth(.3);doc.line(M,y+8,W-M,y+8);
-    y+=12;
-
-    S.questions.forEach((q,i)=>{
-      if(y>256){doc.addPage();doc.setFillColor(248,249,252);doc.rect(0,0,W,297,"F");y=20;}
-      const ok=S.answers[i]===q.ans;
-      doc.setTextColor(107,122,158);doc.setFontSize(7);doc.setFont("helvetica","normal");
-      const ql=doc.splitTextToSize((i+1)+". "+mnLatin(q.q),W-M*2-8);doc.text(ql,M+5,y+3);y+=ql.length*3.8+2;
-      if(ok){
-        doc.setTextColor(13,138,92);doc.setFont("helvetica","bold");t("OK "+LA[S.answers[i]]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const al=doc.splitTextToSize(mnLatin(q.opts[S.answers[i]]),W-M*2-28);doc.text(al,M+20,y);y+=al.length*3.8+4;
-      }else{
-        doc.setTextColor(201,40,26);doc.setFont("helvetica","bold");t("X  "+LA[S.answers[i]]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const wl=doc.splitTextToSize(mnLatin(q.opts[S.answers[i]]),W-M*2-28);doc.text(wl,M+20,y);y+=wl.length*3.8+1;
-        doc.setTextColor(13,138,92);doc.setFont("helvetica","bold");t("OK "+LA[q.ans]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const cl=doc.splitTextToSize(mnLatin(q.opts[q.ans]),W-M*2-28);doc.text(cl,M+20,y);y+=cl.length*3.8+4;
-      }
-    });
-
-    // SIGNATURE PAGE
-    doc.addPage();
-    doc.setFillColor(30,45,107);doc.rect(0,0,W,30,"F");
-    doc.setFillColor(232,67,26);doc.rect(0,30,W,3,"F");
-    try{doc.addImage(MSM_LOGO,"JPEG",M,4,22,22);}catch(e){}
-    doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont("helvetica","bold");
-    t("GARYN USES / DIGITAL SIGNATURE",M+28,17);
-    doc.setTextColor(180,190,220);doc.setFontSize(8);doc.setFont("helvetica","normal");
-    t(mnLatin(last)+" "+mnLatin(first)+"  |  "+now.toLocaleDateString("en-US")+"  "+now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}),M+28,25);
-
-    // Signature box
-    doc.setFillColor(238,241,248);doc.roundedRect(M,42,W-M*2,58,3,3,"F");
-    doc.setDrawColor(208,216,238);doc.roundedRect(M,42,W-M*2,58,3,3,"S");
-    if(S.sig){try{doc.addImage(S.sig,"PNG",M+4,44,W-M*2-8,54);}catch(e){}}
-
-    doc.setTextColor(107,122,158);doc.setFontSize(7);
-    t(mnLatin(last)+" "+mnLatin(first)+" - "+now.toLocaleDateString("en-US")+" "+now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}),M,110);
-
-    y=122;
-    doc.setFillColor(238,241,248);doc.roundedRect(M,y,W-M*2,44,3,3,"F");
-    doc.setDrawColor(30,45,107,.3);doc.roundedRect(M,y,W-M*2,44,3,3,"S");
-    doc.setTextColor(30,45,107);doc.setFontSize(8);doc.setFont("helvetica","bold");
-    t("DECLARATION",M+6,y+9);
-    doc.setTextColor(107,122,158);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
-    try{
-      const decl="I, "+mnLatin(last)+" "+mnLatin(first)+", confirm my participation in the MSM Group LLC HSE Safety Training Exam.";
-      doc.text(doc.splitTextToSize(decl,W-M*2-10),M+6,y+18);
-    }catch(e){}
-    try{
-      const decl2="Bi "+mnLatin(last)+" "+mnLatin(first)+" MSM Group LLC-iin HSE shalgaltad oroltson.";
-      doc.text(doc.splitTextToSize(decl2,W-M*2-10),M+6,y+30);
-    }catch(e){}
-
-    resolve(doc.output("blob"));
-  });
-}
-
-// Admin PDF for a saved record
-function buildRecordPDF(r){
-  return new Promise(resolve=>{
-    const {jsPDF}=window.jspdf;
-    const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
-    const W=210,M=18; let y=20;
-    const t=(tx,x,yy,o)=>{try{doc.text(String(tx||""),x,yy,o||{});}catch(e){}};
+    const setF=(style)=>{ try{ doc.setFont(fontName, style); }catch(e){ doc.setFont("helvetica", style); } };
+    const txt=(s)=> useCyrillic ? String(s||"") : mnLatin(String(s||""));
+    const t=(tx,x,yy,o)=>{try{doc.text(txt(tx),x,yy,o||{});}catch(e){}};
     const LR=["A","B","C","D","E","F"];
 
     // Header
     doc.setFillColor(30,45,107);doc.rect(0,0,W,42,"F");
     doc.setFillColor(232,67,26);doc.rect(0,42,W,4,"F");
     try{doc.addImage(MSM_LOGO,"JPEG",M,6,28,28);}catch(e){}
-    doc.setTextColor(255,255,255);doc.setFontSize(16);doc.setFont("helvetica","bold");
-    t("HSE Safety Training Exam",M+33,18);
-    doc.setFontSize(9);doc.setFont("helvetica","normal");doc.setTextColor(180,190,220);
-    t("Health, Safety & Environment - MSM Group LLC",M+33,26);
+    doc.setTextColor(255,255,255);doc.setFontSize(16);setF("bold");
+    t("HSE Аюулгүй байдлын шалгалт",M+33,18);
+    doc.setFontSize(9);setF("normal");doc.setTextColor(180,190,220);
+    t("Health, Safety & Environment — MSM Group LLC",M+33,26);
     t(r.date,W-M,26,{align:"right"});
 
     y=55;
     doc.setFillColor(238,241,248);doc.roundedRect(M,y,W-M*2,42,3,3,"F");
     doc.setDrawColor(208,216,238);doc.roundedRect(M,y,W-M*2,42,3,3,"S");
-    doc.setTextColor(107,122,158);doc.setFontSize(7);doc.setFont("helvetica","bold");
-    t("EMPLOYEE INFORMATION",M+6,y+8);
-    doc.setTextColor(30,45,107);doc.setFontSize(13);doc.setFont("helvetica","bold");
-    t(mnLatin(r.lastName)+" "+mnLatin(r.firstName),M+6,y+18);
-    doc.setTextColor(107,122,158);doc.setFontSize(8);doc.setFont("helvetica","normal");
-    t("Code: "+mnLatin(r.empCode)+"   |   Company: "+mnLatin(r.company),M+6,y+26);
-    t("Exam: "+mnLatin(r.examType),M+6,y+33);
-    t("Date: "+r.date,M+6,y+40);
+    doc.setTextColor(107,122,158);doc.setFontSize(7);setF("bold");
+    t("АЖИЛТНЫ МЭДЭЭЛЭЛ",M+6,y+8);
+    doc.setTextColor(30,45,107);doc.setFontSize(13);setF("bold");
+    t(r.lastName+" "+r.firstName,M+6,y+18);
+    doc.setTextColor(107,122,158);doc.setFontSize(8);setF("normal");
+    t("Код: "+r.empCode+"   |   Компани: "+r.company,M+6,y+26);
+    t("Шалгалт: "+r.examType,M+6,y+33);
+    t("Огноо: "+r.date,M+6,y+40);
 
     y+=50;
     const rPass=r.passed;
     doc.setFillColor(rPass?13:201,rPass?138:40,rPass?92:26);doc.roundedRect(M,y,W-M*2,28,3,3,"F");
-    doc.setTextColor(255,255,255);doc.setFontSize(20);doc.setFont("helvetica","bold");
+    doc.setTextColor(255,255,255);doc.setFontSize(20);setF("bold");
     t(r.pct+"%",M+8,y+20);
-    doc.setFontSize(13);t(rPass?"TENSUN / PASSED":"TENSEEUGUI / FAILED",M+34,y+14);
-    doc.setFontSize(8);doc.setFont("helvetica","normal");
-    t(r.score+"/"+r.total+" pts  |  "+(r.correctCount||"?")+"/"+(EXAMS[r.examKey]?.questions.length||"?")+" correct",M+34,y+22);
+    doc.setFontSize(13);t(rPass?"ТЭНЦСЭН / PASSED":"ТЭНЦЭЭГҮЙ / FAILED",M+34,y+14);
+    doc.setFontSize(8);setF("normal");
+    t(r.score+"/"+r.total+" оноо  |  "+(r.correctCount||"?")+"/"+(EXAMS[r.examKey]?.questions.length||"?")+" зөв",M+34,y+22);
 
     y+=36;
     const qs=EXAMS[r.examKey]?.questions||[];
-    doc.setTextColor(30,45,107);doc.setFontSize(7.5);doc.setFont("helvetica","bold");
-    t("ANSWER REVIEW",M,y);y+=4;
+    doc.setTextColor(30,45,107);doc.setFontSize(7.5);setF("bold");
+    t("АСУУЛТ БҮРИЙН ХАРИУЛТ",M,y);y+=4;
     doc.setDrawColor(208,216,238);doc.setLineWidth(.3);doc.line(M,y,W-M,y);y+=6;
 
     qs.forEach((q,i)=>{
       if(y>256){doc.addPage();y=20;}
       const ok=r.answers[i]===q.ans;
-      doc.setTextColor(107,122,158);doc.setFontSize(7);doc.setFont("helvetica","normal");
-      const ql=doc.splitTextToSize((i+1)+". "+mnLatin(q.q),W-M*2-8);doc.text(ql,M+5,y+3);y+=ql.length*3.8+2;
+      doc.setTextColor(107,122,158);doc.setFontSize(7);setF("normal");
+      const ql=doc.splitTextToSize(txt((i+1)+". "+q.q),W-M*2-8);doc.text(ql,M+5,y+3);y+=ql.length*3.8+2;
       if(ok){
-        doc.setTextColor(13,138,92);doc.setFont("helvetica","bold");t("OK "+LR[r.answers[i]]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const al=doc.splitTextToSize(mnLatin(q.opts[r.answers[i]]),W-M*2-28);doc.text(al,M+20,y);y+=al.length*3.8+4;
+        doc.setTextColor(13,138,92);setF("bold");t("OK "+LR[r.answers[i]]+": ",M+7,y);
+        setF("normal");const al=doc.splitTextToSize(txt(q.opts[r.answers[i]]),W-M*2-28);doc.text(al,M+20,y);y+=al.length*3.8+4;
       }else{
-        doc.setTextColor(201,40,26);doc.setFont("helvetica","bold");t("X  "+LR[r.answers[i]]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const wl=doc.splitTextToSize(mnLatin(q.opts[r.answers[i]]),W-M*2-28);doc.text(wl,M+20,y);y+=wl.length*3.8+1;
-        doc.setTextColor(13,138,92);doc.setFont("helvetica","bold");t("OK "+LR[q.ans]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const cl=doc.splitTextToSize(mnLatin(q.opts[q.ans]),W-M*2-28);doc.text(cl,M+20,y);y+=cl.length*3.8+4;
+        doc.setTextColor(201,40,26);setF("bold");t("X  "+LR[r.answers[i]]+": ",M+7,y);
+        setF("normal");const wl=doc.splitTextToSize(txt(q.opts[r.answers[i]]),W-M*2-28);doc.text(wl,M+20,y);y+=wl.length*3.8+1;
+        doc.setTextColor(13,138,92);setF("bold");t("OK "+LR[q.ans]+": ",M+7,y);
+        setF("normal");const cl=doc.splitTextToSize(txt(q.opts[q.ans]),W-M*2-28);doc.text(cl,M+20,y);y+=cl.length*3.8+4;
       }
     });
+
+    // Signature page
+    doc.addPage();
+    doc.setFillColor(30,45,107);doc.rect(0,0,W,30,"F");
+    doc.setFillColor(232,67,26);doc.rect(0,30,W,3,"F");
+    try{doc.addImage(MSM_LOGO,"JPEG",M,4,22,22);}catch(e){}
+    doc.setTextColor(255,255,255);doc.setFontSize(13);setF("bold");
+    t("ГАРЫН ҮСЭГ / DIGITAL SIGNATURE",M+28,17);
+    doc.setTextColor(180,190,220);doc.setFontSize(8);setF("normal");
+    t(r.lastName+" "+r.firstName+"  |  "+r.date,M+28,25);
+    doc.setFillColor(238,241,248);doc.roundedRect(M,42,W-M*2,58,3,3,"F");
+    doc.setDrawColor(208,216,238);doc.roundedRect(M,42,W-M*2,58,3,3,"S");
+    if(r.sig){try{doc.addImage(r.sig,"PNG",M+4,44,W-M*2-8,54);}catch(e){}}
+    doc.setTextColor(107,122,158);doc.setFontSize(7);setF("normal");
+    t(r.lastName+" "+r.firstName+" — "+r.date,M,110);
 
     resolve(doc.output("blob"));
   });
@@ -1171,41 +1158,20 @@ async function uploadToOneDrive(blob){
   }
 }
 
-// ═══════════════════════════════════════════
-// PDF GENERATION — returns a Blob
-// ═══════════════════════════════════════════
-// Mongolian Cyrillic → readable transliteration for PDF
-function mnLatin(s){
-  if(!s) return '';
-  const map = {
-    'А':'A','а':'a','Б':'B','б':'b','В':'V','в':'v','Г':'G','г':'g',
-    'Д':'D','д':'d','Е':'Ye','е':'ye','Ё':'Yo','ё':'yo','Ж':'J','ж':'j',
-    'З':'Z','з':'z','И':'I','и':'i','Й':'Y','й':'y','К':'K','к':'k',
-    'Л':'L','л':'l','М':'M','м':'m','Н':'N','н':'n','О':'O','о':'o',
-    'Ө':'O','ө':'o','П':'P','п':'p','Р':'R','р':'r','С':'S','с':'s',
-    'Т':'T','т':'t','У':'U','у':'u','Ү':'U','ү':'u','Ф':'F','ф':'f',
-    'Х':'Kh','х':'kh','Ц':'Ts','ц':'ts','Ч':'Ch','ч':'ch','Ш':'Sh','ш':'sh',
-    'Щ':'Shch','щ':'shch','Ъ':'','ъ':'','Ы':'I','ы':'i','Ь':'','ь':'',
-    'Э':'E','э':'e','Ю':'Yu','ю':'yu','Я':'Ya','я':'ya',
-    // keep common symbols
-    '✓':'OK','✗':'X','→':'>','←':'<'
-  };
-  return s.split('').map(c=>map[c]!==undefined?map[c]:c).join('');
-}
+async function buildPDF(){
+  // Ensure Noto Sans font is loaded for Cyrillic support
+  await ensureNotoFont();
+  const useCyrillic = window._notoFontReady;
+  const fontName = useCyrillic ? "NotoSans" : "helvetica";
 
-// Mongolian → Latin transliteration for PDF (jsPDF doesn't support Cyrillic)
-function mnLatin(s){
-  if(!s) return '';
-  const map={'А':'A','а':'a','Б':'B','б':'b','В':'V','в':'v','Г':'G','г':'g','Д':'D','д':'d','Е':'Ye','е':'ye','Ё':'Yo','ё':'yo','Ж':'J','ж':'j','З':'Z','з':'z','И':'I','и':'i','Й':'Y','й':'y','К':'K','к':'k','Л':'L','л':'l','М':'M','м':'m','Н':'N','н':'n','О':'O','о':'o','Ө':'O','ө':'o','П':'P','п':'p','Р':'R','р':'r','С':'S','с':'s','Т':'T','т':'t','У':'U','у':'u','Ү':'U','ү':'u','Ф':'F','ф':'f','Х':'Kh','х':'kh','Ц':'Ts','ц':'ts','Ч':'Ch','ч':'ch','Ш':'Sh','ш':'sh','Щ':'Shch','щ':'shch','Ъ':'','ъ':'','Ы':'I','ы':'i','Ь':'','ь':'','Э':'E','э':'e','Ю':'Yu','ю':'yu','Я':'Ya','я':'ya','✓':'v','✗':'x'};
-  return s.split('').map(c=>map[c]!==undefined?map[c]:c).join('');
-}
-
-function buildPDF(){
   return new Promise(resolve=>{
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
     const W=210,M=18;let y=20;
-    const t=(tx,x,yy,o)=>{try{doc.text(String(tx||""),x,yy,o||{});}catch(e){}};
+    // Helper: set font (Noto supports Cyrillic; fallback transliterates)
+    const setF=(style)=>{ try{ doc.setFont(fontName, style); }catch(e){ doc.setFont("helvetica", style); } };
+    const txt=(s)=> useCyrillic ? String(s||"") : mnLatin(String(s||""));
+    const t=(tx,x,yy,o)=>{try{doc.text(txt(tx),x,yy,o||{});}catch(e){}};
 
     const last=document.getElementById("lastName").value.trim();
     const first=document.getElementById("firstName").value.trim();
@@ -1219,59 +1185,54 @@ function buildPDF(){
     // HEADER — navy background
     doc.setFillColor(30,45,107);doc.rect(0,0,W,42,"F");
     doc.setFillColor(232,67,26);doc.rect(0,42,W,4,"F");
-
-    // Logo
     try{doc.addImage(MSM_LOGO,"JPEG",M,6,28,28);}catch(e){}
-
-    // Title
-    doc.setTextColor(255,255,255);doc.setFontSize(16);doc.setFont("helvetica","bold");
-    t("HSE Safety Training Exam",M+33,18);
-    doc.setFontSize(9);doc.setFont("helvetica","normal");doc.setTextColor(180,190,220);
+    doc.setTextColor(255,255,255);doc.setFontSize(16);setF("bold");
+    t("HSE Аюулгүй байдлын шалгалт",M+33,18);
+    doc.setFontSize(9);setF("normal");doc.setTextColor(180,190,220);
     t("Health, Safety & Environment — MSM Group LLC",M+33,26);
-    t(now.toLocaleDateString("en-US")+"  "+now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}),W-M,26,{align:"right"});
+    t(now.toLocaleDateString("mn-MN")+"  "+now.toLocaleTimeString("mn-MN",{hour:"2-digit",minute:"2-digit"}),W-M,26,{align:"right"});
 
     y=55;
-
     // Employee info box
     doc.setFillColor(238,241,248);doc.roundedRect(M,y,W-M*2,42,3,3,"F");
     doc.setDrawColor(208,216,238);doc.roundedRect(M,y,W-M*2,42,3,3,"S");
-    doc.setTextColor(107,122,158);doc.setFontSize(7);doc.setFont("helvetica","bold");
-    t("EMPLOYEE INFORMATION",M+6,y+8);
-    doc.setTextColor(30,45,107);doc.setFontSize(13);doc.setFont("helvetica","bold");
-    t(mnLatin(last)+" "+mnLatin(first),M+6,y+18);
-    doc.setTextColor(107,122,158);doc.setFontSize(8);doc.setFont("helvetica","normal");
-    t("Code: "+mnLatin(code)+"   |   Company: "+mnLatin(comp),M+6,y+26);
-    t("Exam: "+mnLatin(EXAMS[S.examKey].label),M+6,y+33);
-    t("Date: "+now.toLocaleDateString("en-US")+" "+now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}),M+6,y+40);
+    doc.setTextColor(107,122,158);doc.setFontSize(7);setF("bold");
+    t("АЖИЛТНЫ МЭДЭЭЛЭЛ",M+6,y+8);
+    doc.setTextColor(30,45,107);doc.setFontSize(13);setF("bold");
+    t(last+" "+first,M+6,y+18);
+    doc.setTextColor(107,122,158);doc.setFontSize(8);setF("normal");
+    t("Код: "+code+"   |   Компани: "+comp,M+6,y+26);
+    t("Шалгалт: "+EXAMS[S.examKey].label,M+6,y+33);
+    t("Огноо: "+now.toLocaleDateString("mn-MN")+" "+now.toLocaleTimeString("mn-MN",{hour:"2-digit",minute:"2-digit"}),M+6,y+40);
     y+=50;
 
     // Result badge
     doc.setFillColor(pass?13:201,pass?138:40,pass?92:26);doc.roundedRect(M,y,W-M*2,28,3,3,"F");
-    doc.setTextColor(255,255,255);doc.setFontSize(20);doc.setFont("helvetica","bold");
+    doc.setTextColor(255,255,255);doc.setFontSize(20);setF("bold");
     t(pct+"%",M+8,y+20);
-    doc.setFontSize(13);t(pass?"TENSUN / PASSED":"TENSEEUGUI / FAILED",M+34,y+14);
-    doc.setFontSize(8);doc.setFont("helvetica","normal");
-    t(S.score+" / "+S.total+" pts  |  "+corr+" correct answers",M+34,y+22);
+    doc.setFontSize(13);t(pass?"ТЭНЦСЭН / PASSED":"ТЭНЦЭЭГҮЙ / FAILED",M+34,y+14);
+    doc.setFontSize(8);setF("normal");
+    t(S.score+" / "+S.total+" оноо  |  "+corr+" зөв хариулт",M+34,y+22);
     y+=36;
 
     // Q&A review
-    doc.setTextColor(30,45,107);doc.setFontSize(7.5);doc.setFont("helvetica","bold");
-    t("ANSWER REVIEW",M,y);y+=4;
+    doc.setTextColor(30,45,107);doc.setFontSize(7.5);setF("bold");
+    t("АСУУЛТ БҮРИЙН ХАРИУЛТ",M,y);y+=4;
     doc.setDrawColor(208,216,238);doc.setLineWidth(.3);doc.line(M,y,W-M,y);y+=6;
     const L=["A","B","C","D","E","F"];
     S.questions.forEach((q,i)=>{
       if(y>256){doc.addPage();doc.setFillColor(248,249,252);doc.rect(0,0,W,297,"F");y=20;}
       const ok=S.answers[i]===q.ans;
-      doc.setTextColor(107,122,158);doc.setFontSize(7);doc.setFont("helvetica","normal");
-      const ql=doc.splitTextToSize((i+1)+". "+mnLatin(q.q),W-M*2-8);doc.text(ql,M+5,y+3);y+=ql.length*3.8+2;
+      doc.setTextColor(107,122,158);doc.setFontSize(7);setF("normal");
+      const ql=doc.splitTextToSize(txt((i+1)+". "+q.q),W-M*2-8);doc.text(ql,M+5,y+3);y+=ql.length*3.8+2;
       if(ok){
-        doc.setTextColor(13,138,92);doc.setFont("helvetica","bold");t("OK "+Lx[S.answers[i]]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const al=doc.splitTextToSize(mnLatin(q.opts[S.answers[i]]),W-M*2-28);doc.text(al,M+20,y);y+=al.length*3.8+4;
+        doc.setTextColor(13,138,92);setF("bold");t("OK "+L[S.answers[i]]+": ",M+7,y);
+        setF("normal");const al=doc.splitTextToSize(txt(q.opts[S.answers[i]]),W-M*2-28);doc.text(al,M+20,y);y+=al.length*3.8+4;
       }else{
-        doc.setTextColor(201,40,26);doc.setFont("helvetica","bold");t("X  "+Lx[S.answers[i]]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const wl=doc.splitTextToSize(mnLatin(q.opts[S.answers[i]]),W-M*2-28);doc.text(wl,M+20,y);y+=wl.length*3.8+1;
-        doc.setTextColor(13,138,92);doc.setFont("helvetica","bold");t("OK "+Lx[q.ans]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const cl=doc.splitTextToSize(mnLatin(q.opts[q.ans]),W-M*2-28);doc.text(cl,M+20,y);y+=cl.length*3.8+4;
+        doc.setTextColor(201,40,26);setF("bold");t("X  "+L[S.answers[i]]+": ",M+7,y);
+        setF("normal");const wl=doc.splitTextToSize(txt(q.opts[S.answers[i]]),W-M*2-28);doc.text(wl,M+20,y);y+=wl.length*3.8+1;
+        doc.setTextColor(13,138,92);setF("bold");t("OK "+L[q.ans]+": ",M+7,y);
+        setF("normal");const cl=doc.splitTextToSize(txt(q.opts[q.ans]),W-M*2-28);doc.text(cl,M+20,y);y+=cl.length*3.8+4;
       }
     });
 
@@ -1280,72 +1241,32 @@ function buildPDF(){
     doc.setFillColor(30,45,107);doc.rect(0,0,W,30,"F");
     doc.setFillColor(232,67,26);doc.rect(0,30,W,3,"F");
     try{doc.addImage(MSM_LOGO,"JPEG",M,4,22,22);}catch(e){}
-    doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont("helvetica","bold");
-    t("GARYN USES / DIGITAL SIGNATURE",M+28,17);
-    doc.setTextColor(180,190,220);doc.setFontSize(8);doc.setFont("helvetica","normal");
+    doc.setTextColor(255,255,255);doc.setFontSize(13);setF("bold");
+    t("ГАРЫН ҮСЭГ / DIGITAL SIGNATURE",M+28,17);
+    doc.setTextColor(180,190,220);doc.setFontSize(8);setF("normal");
     t(last+" "+first+"  |  "+now.toLocaleString("mn-MN"),M+28,25);
 
     doc.setFillColor(238,241,248);doc.roundedRect(M,42,W-M*2,58,3,3,"F");
     doc.setDrawColor(208,216,238);doc.roundedRect(M,42,W-M*2,58,3,3,"S");
     if(S.sig){try{doc.addImage(S.sig,"PNG",M+4,44,W-M*2-8,54);}catch(e){}}
 
-    doc.setTextColor(107,122,158);doc.setFontSize(7);
-    t(mnLatin(last)+" "+mnLatin(first)+" - "+now.toLocaleDateString("en-US")+" "+now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}),M,110);
+    doc.setTextColor(107,122,158);doc.setFontSize(7);setF("normal");
+    t(last+" "+first+" — "+now.toLocaleDateString("mn-MN")+" "+now.toLocaleTimeString("mn-MN",{hour:"2-digit",minute:"2-digit"}),M,110);
+
     y=122;
     doc.setFillColor(238,241,248);doc.roundedRect(M,y,W-M*2,44,3,3,"F");
     doc.setDrawColor(30,45,107,.3);doc.roundedRect(M,y,W-M*2,44,3,3,"S");
-    doc.setTextColor(30,45,107);doc.setFontSize(8);doc.setFont("helvetica","bold");t("MEDEGDEL / DECLARATION",M+6,y+9);
-    doc.setTextColor(107,122,158);doc.setFontSize(7.5);doc.setFont("helvetica","normal");
-    try{doc.text(doc.splitTextToSize("I, "+mnLatin(last)+" "+mnLatin(first)+", confirm my participation in MSM Group LLC HSE Exam.",W-M*2),M,y);}catch(e){}
-    doc.setFillColor(30,45,107);doc.rect(0,0,W,42,"F");
-    doc.setFillColor(232,67,26);doc.rect(0,42,W,4,"F");
-    try{doc.addImage(MSM_LOGO,"JPEG",M,6,28,28);}catch(e){}
-    doc.setTextColor(255,255,255);doc.setFontSize(16);doc.setFont("helvetica","bold");
-    t("HSE Safety Training Exam",M+33,18);
-    doc.setFontSize(9);doc.setFont("helvetica","normal");doc.setTextColor(180,190,220);
-    t("Health, Safety & Environment — MSM Group LLC",M+33,26);t(r.date,W-M,26,{align:"right"});
-    y=55;
-    doc.setFillColor(238,241,248);doc.roundedRect(M,y,W-M*2,42,3,3,"F");
-    doc.setDrawColor(208,216,238);doc.roundedRect(M,y,W-M*2,42,3,3,"S");
-    doc.setTextColor(107,122,158);doc.setFontSize(7);doc.setFont("helvetica","bold");t("EMPLOYEE INFORMATION",M+6,y+8);
-    doc.setTextColor(30,45,107);doc.setFontSize(13);doc.setFont("helvetica","bold");t(r.lastName+" "+r.firstName,M+6,y+18);
-    doc.setTextColor(107,122,158);doc.setFontSize(8);doc.setFont("helvetica","normal");
-    t("Code: "+mnLatin(r.empCode)+"   |   Company: "+mnLatin(r.company),M+6,y+26);
-    t("Exam: "+mnLatin(r.examType),M+6,y+33);t("Date: "+mnLatin(r.date),M+6,y+40);
-    y+=50;
-    const rPass=r.passed;
-    doc.setFillColor(rPass?13:201,rPass?138:40,rPass?92:26);doc.roundedRect(M,y,W-M*2,28,3,3,"F");
-    doc.setTextColor(255,255,255);doc.setFontSize(20);doc.setFont("helvetica","bold");t(r.pct+"%",M+8,y+20);
-    doc.setFontSize(13);t(rPass?"TENSUN / PASSED":"TENSEEUGUI / FAILED",M+34,y+14);
-    doc.setFontSize(8);doc.setFont("helvetica","normal");t(r.score+"/"+r.total+" pts  |  "+(r.correctCount||"?")+"/"+( EXAMS[r.examKey]?.questions.length||"?")+" correct",M+34,y+22);
-    y+=36;
-    const qs=EXAMS[r.examKey]?.questions||[];  // always use MN for stored records
-    doc.setTextColor(30,45,107);doc.setFontSize(7.5);doc.setFont("helvetica","bold");t("ANSWER REVIEW",M,y);y+=4;
-    doc.setDrawColor(208,216,238);doc.setLineWidth(.3);doc.line(M,y,W-M,y);y+=6;
-    const Ladmin=["A","B","C","D","E","F"];   qs.forEach((q,i)=>{
-      if(y>256){doc.addPage();y=20;}
-      const ok=r.answers[i]===q.ans;
-      doc.setTextColor(107,122,158);doc.setFontSize(7);doc.setFont("helvetica","normal");
-      const ql=doc.splitTextToSize((i+1)+". "+mnLatin(q.q),W-M*2-8);doc.text(ql,M+5,y+3);y+=ql.length*3.8+2;
-      if(ok){
-        doc.setTextColor(13,138,92);doc.setFont("helvetica","bold");t("✓ "+Ladmin[r.answers[i]]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const al=doc.splitTextToSize(q.opts[r.answers[i]],W-M*2-28);doc.text(al,M+20,y);y+=al.length*3.8+4;
-      }else{
-        doc.setTextColor(201,40,26);doc.setFont("helvetica","bold");t("✗ "+Ladmin[r.answers[i]]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const wl=doc.splitTextToSize(q.opts[r.answers[i]],W-M*2-28);doc.text(wl,M+20,y);y+=wl.length*3.8+1;
-        doc.setTextColor(13,138,92);doc.setFont("helvetica","bold");t("OK "+Ladmin[q.ans]+": ",M+7,y);
-        doc.setFont("helvetica","normal");const cl=doc.splitTextToSize(mnLatin(q.opts[q.ans]),W-M*2-28);doc.text(cl,M+20,y);y+=cl.length*3.8+4;
-      }
-    });
-    doc.addPage();
-    doc.setFillColor(30,45,107);doc.rect(0,0,W,30,"F");doc.setFillColor(232,67,26);doc.rect(0,30,W,3,"F");
-    try{doc.addImage(MSM_LOGO,"JPEG",M,4,22,22);}catch(e){}
-    doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont("helvetica","bold");t("GARYN USES / DIGITAL SIGNATURE",M+28,17);
-    doc.setTextColor(180,190,220);doc.setFontSize(8);doc.setFont("helvetica","normal");t(r.lastName+" "+r.firstName+"  |  "+r.date,M+28,25);
-    doc.setFillColor(238,241,248);doc.roundedRect(M,42,W-M*2,58,3,3,"F");doc.setDrawColor(208,216,238);doc.roundedRect(M,42,W-M*2,58,3,3,"S");
-    if(r.sig){try{doc.addImage(r.sig,"PNG",M+4,44,W-M*2-8,54);}catch(e){}}
-    doc.setTextColor(107,122,158);doc.setFontSize(7);t(mnLatin(r.lastName)+" "+mnLatin(r.firstName)+" - "+r.date,M,110);
-    esolve(doc.output("blob"));
+    doc.setTextColor(30,45,107);doc.setFontSize(8);setF("bold");
+    t("МЭДЭГДЭЛ / DECLARATION",M+6,y+9);
+    doc.setTextColor(107,122,158);doc.setFontSize(7.5);setF("normal");
+    try{
+      const decl1=txt("Би, "+last+" "+first+", MSM Group LLC-ийн HSE аюулгүй байдлын шалгалтад оролцсоноо баталгаажуулж байна.");
+      doc.text(doc.splitTextToSize(decl1,W-M*2-10),M+6,y+18);
+      const decl2="I, "+last+" "+first+", confirm my participation in the MSM Group LLC HSE Safety Training Exam.";
+      doc.text(doc.splitTextToSize(decl2,W-M*2-10),M+6,y+30);
+    }catch(e){}
+
+    resolve(doc.output("blob"));
   });
 }
 
