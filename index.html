@@ -200,8 +200,8 @@ body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",sans-ser
     <div class="card-top"></div>
     <div class="sec-label">01 — Хувийн мэдээлэл</div>
     <div class="grid2">
-      <div class="fg"><label>ОВОГ *</label><input type="text" id="lastName" placeholder=""></div>
-      <div class="fg"><label>НЭР *</label><input type="text" id="firstName" placeholder=""></div>
+      <div class="fg"><label>ОВОГ *</label><input type="text" id="lastName" placeholder="Бүтэн овгоо бичнэ үү"></div>
+      <div class="fg"><label>НЭР *</label><input type="text" id="firstName" placeholder="Бүтэн нэрээ бичнэ үү"></div>
       <div class="fg"><label>АЖИЛТНЫ КОД *</label><input type="text" id="empCode" placeholder="0000" maxlength="4"></div>
       <div class="fg"><label>КОМПАНИ *</label>
         <select id="company">
@@ -953,7 +953,7 @@ const LABELS = {
     hdrSub: 'Health, Safety & Environment — MSM Group LLC',
     step1sec1: '01 — Хувийн мэдээлэл',
     step1sec2: '02 — Шалгалтын төрөл',
-    lblLastName: 'ОВОГ *', lblFirstName: 'НЭР *',
+    lblLastName: 'ОВОГ *', lblFirstName: 'НЭР *', phLastName: 'Бүтэн овгоо бичнэ үү', phFirstName: 'Бүтэн нэрээ бичнэ үү',
     lblCode: 'АЖИЛТНЫ КОД *', lblCompany: 'КОМПАНИ *',
     companyOpts: ['— Сонгоно уу —','МСМ','Бетастар','Гэрээт','Бусад'],
     et_new_name: 'Шинэ ажилтан', et_new_desc: 'New employee',
@@ -994,7 +994,7 @@ const LABELS = {
     hdrSub: 'Health, Safety & Environment — MSM Group LLC',
     step1sec1: '01 — Personal Information',
     step1sec2: '02 — Exam Type',
-    lblLastName: 'LAST NAME *', lblFirstName: 'FIRST NAME *',
+    lblLastName: 'LAST NAME *', lblFirstName: 'FIRST NAME *', phLastName: 'Enter your full last name', phFirstName: 'Enter your full first name',
     lblCode: 'EMPLOYEE CODE *', lblCompany: 'COMPANY *',
     companyOpts: ['— Select —','MSM','Betastar','Contract','Other'],
     et_new_name: 'New Employee', et_new_desc: 'Шинэ ажилтан',
@@ -1054,6 +1054,8 @@ function applyLang() {
   if(fgLabels[1]) fgLabels[1].textContent = L.lblFirstName;
   if(fgLabels[2]) fgLabels[2].textContent = L.lblCode;
   if(fgLabels[3]) fgLabels[3].textContent = L.lblCompany;
+  document.getElementById('lastName').placeholder = L.phLastName;
+  document.getElementById('firstName').placeholder = L.phFirstName;
   // Company select options
   const sel = document.getElementById('company');
   if(sel) Array.from(sel.options).forEach((o,i)=>{ if(L.companyOpts[i]) o.text=L.companyOpts[i]; });
