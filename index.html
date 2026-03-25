@@ -738,6 +738,7 @@ async function submitToForms(){
     company: comp,
     examType: (LANG==="en"?EN_EXAMS:EXAMS)[S.examKey].label,
     score: S.score+"/"+S.total+" ("+pct+"%)",
+    passed: S.passed ? "Тэнцсэн" : "Тэнцээгүй",
     date: now.toLocaleString("mn-MN"),
     correctCount: corr+"/"+S.questions.length,
     answers: answerDetail,
