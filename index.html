@@ -39,8 +39,8 @@ async function loadNotoFont() {
 async function loadNotoFontTTF() {
   try {
     const urls = [
-      "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.28/files/noto-sans-cyrillic-400-normal.woff2",
-      "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.28/files/noto-sans-cyrillic-700-normal.woff2"
+      "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5/files/noto-sans-cyrillic-400-normal.woff2",
+      "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5/files/noto-sans-cyrillic-700-normal.woff2"
     ];
     const toB64 = async (url) => {
       const resp = await fetch(url);
@@ -783,11 +783,11 @@ function renderResult(){
     const ok=S.answers[i]===q.ans;
     const d=document.createElement("div");d.className="rev-item";
     d.innerHTML=`<div class="rev-q">${q.q}</div>`;
-    if(ok){d.innerHTML+=`<div class="rev-ans"><span class="tag tag-ok">${LABELS[LANG].tagOk}</span><span>${L[S.answers[i]]}: ${q.opts[S.answers[i]]}</span></div>`;}
+    if(ok){d.innerHTML+=`<div class="rev-ans"><span class="tag tag-ok">${LABELS[LANG].tagOk}</span><span>${Lx[S.answers[i]]}: ${q.opts[S.answers[i]]}</span></div>`;}
     else{
-      d.innerHTML+=`<div class="rev-ans"><span class="tag tag-wrong">${LABELS[LANG].tagWrong}</span><span>${L[S.answers[i]]}: ${q.opts[S.answers[i]]}</span></div>`;
+      d.innerHTML+=`<div class="rev-ans"><span class="tag tag-wrong">${LABELS[LANG].tagWrong}</span><span>${Lx[S.answers[i]]}: ${q.opts[S.answers[i]]}</span></div>`;
       d.innerHTML+=`<div class="rev-sep"></div>`;
-      d.innerHTML+=`<div class="rev-ans"><span class="tag tag-corr">${LABELS[LANG].tagCorr}</span><span>${L[q.ans]}: ${q.opts[q.ans]}</span></div>`;
+      d.innerHTML+=`<div class="rev-ans"><span class="tag tag-corr">${LABELS[LANG].tagCorr}</span><span>${Lx[q.ans]}: ${q.opts[q.ans]}</span></div>`;
     }
     area.appendChild(d);
   });
@@ -800,9 +800,9 @@ function renderResult(){
 async function submitToForms(){
   const fs=document.getElementById("formsStatus");
   const fm=document.getElementById("formsMsg");
-  // fs hidden intentionally - silent submission
   fs.className="status-box pending";
-  fm.innerHTML='<div class="spin" style="flex-shrink:0"></div> Хадгалж байна...';
+  fs.classList.remove("hidden");
+  fm.innerHTML='<div class="spin" style="flex-shrink:0"></div> SharePoint-д хадгалж байна...';
 
   const last=document.getElementById("lastName").value.trim();
   const first=document.getElementById("firstName").value.trim();
@@ -811,14 +811,14 @@ async function submitToForms(){
   const now=new Date();
   const pct=Math.round(S.score/S.total*100);
   const corr=S.questions.filter((q,i)=>S.answers[i]===q.ans).length;
-  const L=["A","B","C","D","E","F"];
+  const Lx=["A","B","C","D","E","F"];
 
   const answerDetail = S.questions.map((q,i)=>{
     const chosen = q.opts[S.answers[i]];
     const correct = q.opts[q.ans];
     const ok = S.answers[i]===q.ans;
     return (i+1)+". "+Lx[S.answers[i]]+": "+chosen+" "+(ok?"✓":"✗ (Зөв: "+correct+")");
-  }).join(" | ");
+  }).join("\n");
 
   // Build PDF as base64
   let pdfBase64 = "";
@@ -830,7 +830,9 @@ async function submitToForms(){
       reader.onload = () => resolve(reader.result.split(",")[1]);
       reader.readAsDataURL(blob);
     });
-  } catch(e) { console.error("PDF error:", e); }
+  } catch(e) { console.error("PDF build error:", e); }
+
+  const POWER_AUTOMATE_URL = "https://f442b730d6634f8286cd09b5f1b9da.e6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/d5943f1480014868831e53479c564d6a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Xu97s4MJ9vPG32KpJkl-kmWIaJa91oM1ASKuK_Wgabo";
 
   const payload = {
     lastName: last,
@@ -840,31 +842,34 @@ async function submitToForms(){
     examType: (LANG==="en"?EN_EXAMS:EXAMS)[S.examKey].label,
     score: S.score+"/"+S.total+" ("+pct+"%)",
     passed: S.passed?"ТЭНЦСЭН ✓":"ТЭНЦЭЭГҮЙ ✗",
-    date: now.toLocaleDateString("mn-MN"),
+    date: now.toLocaleString("mn-MN"),
+    correctCount: corr+"/"+S.questions.length,
     answers: answerDetail,
-    pdfBase64: pdfBase64
+    pdfBase64: pdfBase64,
+    fileName: "HSE_"+last+"_"+first+"_"+now.toISOString().slice(0,10)+".pdf"
   };
 
-  const POWER_AUTOMATE_URL = "https://f442b730d6634f8286cd09b5f1b9da.e6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/d5943f1480014868831e53479c564d6a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Xu97s4MJ9vPG32KpJkl-kmWIaJa91oM1ASKuK_Wgabo";
-
   try {
+    console.log("Sending to Power Automate...", POWER_AUTOMATE_URL);
     const res = await fetch(POWER_AUTOMATE_URL, {
       method: "POST",
-      headers: { 
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    if(res.ok || res.status===202 || res.status===200) {
+    console.log("Power Automate response:", res.status, res.statusText);
+    if(res.status===200 || res.status===202 || res.ok) {
       fs.className="status-box ok";
       fm.textContent="✓ SharePoint-д амжилттай хадгалагдлаа!";
       toast("✓ Хадгалагдлаа","ok");
     } else {
-      throw new Error("HTTP "+res.status);
+      const body = await res.text().catch(()=>"");
+      console.error("Power Automate error body:", body);
+      throw new Error("HTTP "+res.status+(body?" — "+body.slice(0,120):""));
     }
   } catch(e) {
+    console.error("Power Automate fetch error:", e);
     fs.className="status-box err";
-    fm.textContent="⚠ Алдаа: "+e.message;
+    fm.innerHTML="⚠ Power Automate алдаа: <b>"+e.message+"</b><br><small>Browser Console (F12) дээр дэлгэрэнгүй харна уу.</small>";
     toast("⚠ Алдаа гарлаа","err");
   }
 
@@ -1273,20 +1278,41 @@ async function buildPDF(){
 // ═══════════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════════
+function downloadPDFLocal(){
+  if(S.pdfBlob){
+    const url=URL.createObjectURL(S.pdfBlob);
+    const a=document.createElement("a");
+    const last=document.getElementById("lastName").value.trim();
+    const first=document.getElementById("firstName").value.trim();
+    a.href=url;a.download="HSE_"+last+"_"+first+"_"+new Date().toISOString().slice(0,10)+".pdf";
+    a.click();URL.revokeObjectURL(url);
+  } else {
+    buildPDF().then(blob=>{
+      S.pdfBlob=blob;
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      const last=document.getElementById("lastName").value.trim();
+      const first=document.getElementById("firstName").value.trim();
+      a.href=url;a.download="HSE_"+last+"_"+first+"_"+new Date().toISOString().slice(0,10)+".pdf";
+      a.click();URL.revokeObjectURL(url);
+    });
+  }
+}
+
 function resetExam(){
   clearInterval(S.timerIv);
   S={examType:null,position:null,examKey:null,questions:[],answers:[],curQ:0,t0:null,t1:null,timerIv:null,sig:null,score:0,total:0,passed:false,pdfBlob:null};
-  ["lastName","firstName","empCode"].forEach(id=>document.getElementById(id).value="");
-  document.getElementById("company").value="";
+  ["lastName","firstName","empCode"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+  const comp=document.getElementById("company"); if(comp) comp.value="";
   document.querySelectorAll(".etype").forEach(e=>e.classList.remove("sel"));
   document.querySelectorAll(".pos-btn").forEach(b=>b.classList.remove("sel"));
-  document.getElementById("posWrap").classList.remove("show");
+  const posWrap=document.getElementById("posWrap"); if(posWrap) posWrap.classList.remove("show");
   S.position=null;
-  document.getElementById("scoreRing").className="score-ring";
-  document.getElementById("scorePct").className="score-pct";
-  document.getElementById("formsStatus").className="status-box pending";
-  document.getElementById("formsMsg").innerHTML='<div class="spin"></div> Microsoft Forms руу илгээж байна...';
-  document.getElementById("odStatus").classList.add("hidden");
+  const sr=document.getElementById("scoreRing"); if(sr) sr.className="score-ring";
+  const sp=document.getElementById("scorePct"); if(sp) sp.className="score-pct";
+  const fs=document.getElementById("formsStatus"); if(fs){ fs.className="status-box pending"; fs.classList.add("hidden"); }
+  const fm=document.getElementById("formsMsg"); if(fm) fm.innerHTML='<div class="spin"></div> Хадгалж байна...';
+  const od=document.getElementById("odStatus"); if(od) od.classList.add("hidden");
   prog(0);steps(0);show("step1");hide("step2");hide("step3");hide("step4");
 }
 function prog(p){document.getElementById("progBar").style.width=p+"%";}
