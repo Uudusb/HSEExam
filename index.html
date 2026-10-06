@@ -220,6 +220,7 @@ body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",sans-ser
       <div class="etype" onclick="selType('temp')" id="et-temp"><span class="ei">⏱</span><span class="en">Түр ажилтан</span><span class="ed">Temporary employee</span></div>
       <div class="etype" onclick="selType('guest')" id="et-guest"><span class="ei">🪪</span><span class="en">Зочин</span><span class="ed">Guest / Visitor</span></div>
       <div class="etype" onclick="selType('retaken')" id="et-retaken"><span class="ei">🔄</span><span class="en">Ээлжит бус давтан</span><span class="ed">Retaken / Refresher</span></div>
+      <div class="etype" onclick="selType('all')" id="et-all"><span class="ei">👥</span><span class="en">Нийт ажилтан</span><span class="ed">All employees</span></div>
     </div>
     <div class="pos-wrap" id="posWrap">
       <div class="div"></div>
@@ -421,6 +422,20 @@ const EXAMS = {
     {q:"8. Ажлын байрны сөрөг хүчин зүйлийн ангилал аль нь вэ?",opts:["Химийн хүчин зүйл","Физик хүчин зүйл","Сэтгэлзүй физиологийн хүчин зүйл","Биологийн хүчин зүйл","Эргономикийн хүчин зүйл","Дээрх бүгд"],ans:5,sc:10},
     {q:"9. Аюултай хог хаягдал гэж юу вэ?",opts:["Өнгөгүй цаас","Химийн бодисын сав","Органик хүнсний хаягдал"],ans:1,sc:10},
     {q:"10. Тос маслоны аюултай хог хаягдлын хогийн сав ямар өнгөтэй байдаг вэ?",opts:["Ногоон","Хар","Улаан"],ans:2,sc:10}
+  ]},
+  all:{label:"Нийт ажилтан",questions:[
+    {q:"1. Ноцтой эрсдэл гэж юу вэ?",opts:["Ноцтой бэртэл гэмтэл авах эсвэл амь насаа алдахыг хэлнэ","Эрсдэлийн таних үг","Тийм эрсдэл байхгүй"],ans:0,sc:1},
+    {q:"2. ААДШ-ийг хэн боловсруулах ёстой вэ?",opts:["Багийн ахлах","Зөвшөөрөл олгогч","Хамгийн гоё бичигтэй нь","Багаараа"],ans:3,sc:1},
+    {q:"3. Аль нь эрсдэлийн үнэлгээний хяналтийн хэрэгсэл вэ?",opts:["ААДШ","5 алхам","Тусгай зөвшөөрөл","Ажлын стандарт журам","Дээрх бүгд"],ans:4,sc:1},
+    {q:"4. Хяналтын арга хэмжээний Орлуулах арга хэмжээ нь аль нь вэ?",opts:["Аюулыг бүрэн арилга","Аюул багатай зүйлээр солих","Хууль, журам, дүрэм, зааварчилгаа, сургалт","Аюулыг эх үүсвэр дээр нь хянах","Ижил өртөлтийн бүлэг гэж юу вэ?"],ans:1,sc:1},
+    {q:"5. Ижил өртөлтийн бүлэг гэж юу вэ?",opts:["Ажлын нөхцөл, гүйцэтгэх ажил болон өртөж буй хүчин зүйл нь ижил буюу ижил төстэй ажилтнуудын бүлэг","Нэг хэлтэст ажилладаг, албан тушаал нь ижил бүх ажилтнуудын бүлэг.","Байгууллагын нэг салбар, нэг байршилд ажилладаг бүлэг"],ans:0,sc:1},
+    {q:"6. Осолд дөхсөн тохиолдол гэж юу вэ?",opts:["Хүний эрүүл мэнд, эд хөрөнгөд хохирол учирсан үйл явдал","Осол гарах боломжтой байсан боловч гэмтэл, хохирол учраагүй тохиолдол"],ans:1,sc:1},
+    {q:"7. Ослын шууд шалтгаан гэж юу вэ?",opts:["Ажилтны ажлын туршлага, дадлага дутмаг байх","Осол гарахад шууд нөлөөлсөн аюултай үйлдэл эсвэл аюултай нөхцөл","Байгууллагын урт хугацааны бодлого, төлөвлөгөө алдагдсан байх"],ans:1,sc:1},
+    {q:"8. Хэрэв та галын дохиолол дуугарахыг сонсвол юу хийх вэ?",opts:["Ажлаа үргэлжлүүлээд, аюулгүй эсэхийг хүлээх","Цонхоор гарах","Ажлаа зогсоож, хамгийн ойрын аюулгүй гарцаар гарч цугларах цэгт очих","Лифт ашиглан барилгаас гарах"],ans:2,sc:1},
+    {q:"9. Ажлын байранд байгаль орчинд үзүүлэх сөрөг нөлөөллийг бууруулах хамгийн зөв арга аль вэ?",opts:["Үүссэн асуудлыг зөвхөн цэвэрлэх","Асуудал үүсэхээс урьдчилан сэргийлэх","Зөвхөн ХЭМАБО-ын хэлтсийн ажилтанд хариуцуулах","Жилийн эцэст нэг удаа шалгах"],ans:1,sc:1},
+    {q:"10. Дараах зүйлсээс аль нь ажлын байрны байгаль орчны асуудалд хамаарах вэ?",opts:["Хог хаягдлыг буруу ангилан хаях","Ус, эрчим хүчийг үр ашиггүй ашиглах","Тос, химийн бодис асгарах","Дээрх бүгд"],ans:3,sc:1},
+    {q:"11. Аль түвшний ажилтны манлайлал хамгийн чухал вэ?",opts:["Удирдлага, ахлах ажилтны","ХАБ-н ажилтны","Бүгд буруу"],ans:0,sc:1},
+    {q:"12. Аюулгүй ажиллагааны соёлд ажилтан та яаж оролцох вэ?",opts:["Осол, осолд дөхсөн тохиолдол болон аюулыг мэдээлэх","Аюултай нөхцөл, үйлдлийг харвал зогсоох","Сургалт, зааварчилгаанд идэвхтэй хамрагдах","Дээрх бүгд"],ans:3,sc:1}
   ]}
 };
 
@@ -489,6 +504,20 @@ const EN_EXAMS = {
     {q:"8. Which of the following is a classification of negative workplace factors? Select the correct one.",opts:["Chemical factors","Physical factors","Psycho-physiological factors","Biological factors","Ergonomic factors","All of the above"],ans:5,sc:10},
     {q:"9. What is hazardous waste?",opts:["Colorless paper","Chemical substance containers","Organic food waste"],ans:1,sc:10},
     {q:"10. What color is the waste bin for hazardous oil and lubricant waste?",opts:["Green","Black","Red"],ans:2,sc:10}
+  ]},
+  all:{label:"All Employees",questions:[
+    {q:"1. What is a serious risk?",opts:["Means serious injury or loss of life","A risk identification term","There is no such risk"],ans:0,sc:1},
+    {q:"2. Who should develop the AADSH (JSA)?",opts:["Team leader","Permit issuer","Whoever has the nicest handwriting","As a team"],ans:3,sc:1},
+    {q:"3. Which is a risk assessment control tool?",opts:["AADSH","5 steps","Special permit","Work standard procedure","All of the above"],ans:4,sc:1},
+    {q:"4. Which is a substitution control measure?",opts:["Eliminate the hazard completely","Replace with something less hazardous","Laws, rules, procedures, instructions, training","Control the hazard at the source","What is a similar exposure group?"],ans:1,sc:1},
+    {q:"5. What is a similar exposure group?",opts:["A group of employees with the same or similar working conditions, tasks, and exposure factors","A group of all employees in the same department with the same job title","A group working in the same branch or location of the organization"],ans:0,sc:1},
+    {q:"6. What is a near miss?",opts:["An event that caused harm to people or property","A situation where an accident could have occurred but no injury or damage resulted"],ans:1,sc:1},
+    {q:"7. What is the direct cause of an accident?",opts:["Lack of employee work experience or practice","A dangerous act or condition that directly led to the accident","Failure of the organization's long-term policy or plan"],ans:1,sc:1},
+    {q:"8. What should you do if you hear the fire alarm?",opts:["Continue working and wait to see if it is safe","Exit through a window","Stop work, leave by the nearest safe exit, and go to the assembly point","Use the elevator to leave the building"],ans:2,sc:1},
+    {q:"9. What is the best way to reduce negative environmental impact at the workplace?",opts:["Only clean up after problems occur","Prevent problems from occurring","Assign responsibility only to HSE department staff","Check once at the end of the year"],ans:1,sc:1},
+    {q:"10. Which of the following relates to workplace environmental issues?",opts:["Incorrect waste sorting","Inefficient use of water and energy","Oil or chemical spills","All of the above"],ans:3,sc:1},
+    {q:"11. Which level of employee leadership is most important?",opts:["Management and senior staff","HSE staff","All are wrong"],ans:0,sc:1},
+    {q:"12. How do you participate in a safety culture?",opts:["Report accidents, near misses, and hazards","Stop if you see a dangerous condition or act","Actively take part in training and instructions","All of the above"],ans:3,sc:1}
   ]}
 };
 
@@ -659,7 +688,10 @@ function goResult(){
 function calcScore(){
   let sc=0,tot=0;
   S.questions.forEach((q,i)=>{tot+=q.sc;if(S.answers[i]===q.ans)sc+=q.sc;});
-  S.score=sc;S.total=tot;S.passed=sc/tot>=0.8;
+  S.score=sc;S.total=tot;
+  // Нийт ажилтан: 9/12 (75%) тэнцэнэ; бусад: 80%
+  const threshold = S.examType === "all" ? 0.75 : 0.8;
+  S.passed=sc/tot>=threshold;
 }
 function renderResult(){
   const pct=Math.round(S.score/S.total*100);
@@ -667,7 +699,10 @@ function renderResult(){
   const pe=document.getElementById("scorePct");pe.classList.add(S.passed?"pass":"fail");pe.textContent=pct+"%";
   document.getElementById("verdict").textContent=S.passed?LABELS[LANG].passVerdict:LABELS[LANG].failVerdict;
   document.getElementById("verdict").className="verdict "+(S.passed?"pass":"fail");
-  document.getElementById("resNote").textContent=S.passed?LABELS[LANG].passNote:LABELS[LANG].failNote;
+  const failNote = S.examType === "all"
+    ? (LANG==="en" ? "You answered fewer than 9 questions correctly (below 75%). You are required to retake the training." : "Та 9-өөс цөөн зөв хариулсан тул (75%-иас доош) дахин сургалтанд хамрагдах шаардлагатай.")
+    : LABELS[LANG].failNote;
+  document.getElementById("resNote").textContent=S.passed?LABELS[LANG].passNote:failNote;
   const el=Math.floor((S.t1-S.t0)/1000);
   document.getElementById("stCorr").textContent=S.questions.filter((q,i)=>S.answers[i]===q.ans).length+"/"+S.questions.length;
   document.getElementById("stScore").textContent=S.score+"/"+S.total;
@@ -961,6 +996,7 @@ const LABELS = {
     et_temp_name: 'Түр ажилтан', et_temp_desc: 'Temporary employee',
     et_guest_name: 'Зочин', et_guest_desc: 'Guest / Visitor',
     et_retaken_name: 'Ээлжит бус давтан', et_retaken_desc: 'Retaken / Refresher',
+    et_all_name: 'Нийт ажилтан', et_all_desc: 'All employees',
     posLbl: 'АЖЛЫН БАЙРНЫ ТӨРӨЛ *',
     posOffice: '🏢 Оффис', posRisk: '⚠️ Эрсдэлтэй',
     startBtn: 'Тест эхлүүлэх →',
@@ -1002,6 +1038,7 @@ const LABELS = {
     et_temp_name: 'Temporary Employee', et_temp_desc: 'Түр ажилтан',
     et_guest_name: 'Guest / Visitor', et_guest_desc: 'Зочин',
     et_retaken_name: 'Retaken / Refresher', et_retaken_desc: 'Ээлжит бус давтан',
+    et_all_name: 'All Employees', et_all_desc: 'Нийт ажилтан',
     posLbl: 'WORK POSITION TYPE *',
     posOffice: '🏢 Office', posRisk: '⚠️ High Risk',
     startBtn: 'Start Exam →',
@@ -1069,6 +1106,8 @@ function applyLang() {
   document.querySelector('#et-guest .ed').textContent = L.et_guest_desc;
   document.querySelector('#et-retaken .en').textContent = L.et_retaken_name;
   document.querySelector('#et-retaken .ed').textContent = L.et_retaken_desc;
+  document.querySelector('#et-all .en').textContent = L.et_all_name;
+  document.querySelector('#et-all .ed').textContent = L.et_all_desc;
   // Position
   document.querySelector('.pos-lbl').textContent = L.posLbl;
   document.getElementById('pos-office').textContent = L.posOffice;
@@ -1100,7 +1139,10 @@ function applyLang() {
     const resNoteEl = document.getElementById("resNote");
     if(verdictEl && verdictEl.textContent !== "" && verdictEl.textContent !== "—") {
       verdictEl.textContent = S.passed ? L.passVerdict : L.failVerdict;
-      resNoteEl.textContent = S.passed ? L.passNote : L.failNote;
+      const failNote = S.examType === "all"
+        ? (LANG==="en" ? "You answered fewer than 9 questions correctly (below 75%). You are required to retake the training." : "Та 9-өөс цөөн зөв хариулсан тул (75%-иас доош) дахин сургалтанд хамрагдах шаардлагатай.")
+        : L.failNote;
+      resNoteEl.textContent = S.passed ? L.passNote : failNote;
     }
   }
   // Nav buttons in exam
