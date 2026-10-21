@@ -303,14 +303,17 @@ body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",sans-ser
         <div class="sbox"><div class="sval" id="stTime">—</div><div class="skey">Зарцуулсан цаг</div></div>
       </div>
 
-      <div class="status-box pending hidden" id="formsStatus" style="display:none!important"><div class="spin"></div><span id="formsMsg">Microsoft Forms руу илгээж байна...</span></div>
+      <div class="status-box pending hidden" id="formsStatus"><div class="spin"></div><span id="formsMsg">SharePoint-д хадгалж байна...</span></div>
+      <div id="retryWrap" class="hidden" style="margin-top:10px;text-align:center;">
+        <button class="btn btn-primary" type="button" onclick="retrySubmit()">↻ Дахин илгээх</button>
+      </div>
 
       <div class="div" style="display:none"></div>
       <div class="sec-label" style="display:none">Асуулт бүрийн хариулт</div>
       <div id="reviewArea" style="display:none"></div>
       <div class="div"></div>
       <div class="action-bar" style="grid-template-columns:1fr;">
-        <button class="btn btn-primary" onclick="resetExam()">🔄 Шинэ тест</button>
+        <button class="btn btn-primary" id="btnReset" onclick="resetExam()">🔄 Шинэ тест</button>
       </div>
     </div>
   </div>
@@ -524,7 +527,7 @@ const EN_EXAMS = {
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-let S={examType:null,position:null,examKey:null,questions:[],answers:[],curQ:0,t0:null,t1:null,timerIv:null,sig:null,score:0,total:0,pdfBlob:null,_submitting:false};
+let S={examType:null,position:null,examKey:null,questions:[],answers:[],curQ:0,t0:null,t1:null,timerIv:null,sig:null,score:0,total:0,pdfBlob:null,_submitting:false,_saved:false};
 // ═══════════════════════════════════════════
 // STEP 1
 // ═══════════════════════════════════════════
@@ -724,49 +727,72 @@ function renderResult(){
 }
 
 // ═══════════════════════════════════════════
-// MICROSOFT FORMS — SILENT BACKGROUND SUBMIT
-// Uses the real Forms API with actual question IDs
+// SHAREPOINT VIA POWER AUTOMATE
+// Retries on failure; shows status + retry button
 // ═══════════════════════════════════════════
-async function submitToForms(){
-  if(S._submitting) return; // prevent double submit
-  S._submitting = true;
+const POWER_AUTOMATE_URL = "https://f442b730d6634f8286cd09b5f1b9da.e6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/d5943f1480014868831e53479c564d6a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Xu97s4MJ9vPG32KpJkl-kmWIaJa91oM1ASKuK_Wgabo";
+const SUBMIT_MAX_ATTEMPTS = 3;
+
+function setSubmitUI(state, msgHtml){
   const fs=document.getElementById("formsStatus");
   const fm=document.getElementById("formsMsg");
-  fs.className="status-box pending";
+  const rw=document.getElementById("retryWrap");
+  const btn=document.getElementById("btnReset");
+  if(!fs||!fm) return;
   fs.classList.remove("hidden");
-  fm.innerHTML='<div class="spin" style="flex-shrink:0"></div> SharePoint-д хадгалж байна...';
+  fs.className="status-box "+state;
+  fm.innerHTML=msgHtml;
+  if(rw) rw.classList.toggle("hidden", state!=="err");
+  if(btn){
+    if(state==="pending"){ btn.disabled=true; btn.style.opacity=".55"; btn.style.pointerEvents="none"; }
+    else { btn.disabled=false; btn.style.opacity=""; btn.style.pointerEvents=""; }
+  }
+}
 
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const s=String(reader.result||"");
+      resolve(s.includes(",")?s.split(",")[1]:s);
+    };
+    reader.onerror=()=>reject(new Error("PDF уншиж чадсангүй"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function buildSubmitPayload(){
   const last=document.getElementById("lastName").value.trim();
   const first=document.getElementById("firstName").value.trim();
   const code=document.getElementById("empCode").value.trim();
   const comp=document.getElementById("company").value;
   const now=new Date();
-  const pct=Math.round(S.score/S.total*100);
+  const tot=S.total||0;
+  const pct=tot?Math.round(S.score/tot*100):0;
   const corr=S.questions.filter((q,i)=>S.answers[i]===q.ans).length;
   const Lx=["A","B","C","D","E","F"];
 
   const answerDetail = S.questions.map((q,i)=>{
-    const chosen = q.opts[S.answers[i]];
+    const ai=S.answers[i];
+    if(ai==null) return (i+1)+". — хариулаагүй";
+    const chosen = q.opts[ai];
     const correct = q.opts[q.ans];
-    const ok = S.answers[i]===q.ans;
-    return (i+1)+". "+Lx[S.answers[i]]+": "+chosen+" "+(ok?"✓":"✗ (Зөв: "+correct+")");
+    const ok = ai===q.ans;
+    return (i+1)+". "+Lx[ai]+": "+chosen+" "+(ok?"✓":"✗ (Зөв: "+correct+")");
   }).join("\n");
 
-  // Build PDF as base64
-  let pdfBase64 = "";
-  try {
-    const blob = await buildPDF();
-    S.pdfBlob = blob;
-    const reader = new FileReader();
-    pdfBase64 = await new Promise(resolve => {
-      reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.readAsDataURL(blob);
-    });
-  } catch(e) { console.error("PDF build error:", e); }
+  const blob = await buildPDF();
+  S.pdfBlob = blob;
+  const pdfBase64 = await blobToBase64(blob);
+  if(!pdfBase64) throw new Error("PDF хоосон үүссэн");
 
-  const POWER_AUTOMATE_URL = "https://f442b730d6634f8286cd09b5f1b9da.e6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/d5943f1480014868831e53479c564d6a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Xu97s4MJ9vPG32KpJkl-kmWIaJa91oM1ASKuK_Wgabo";
+  const stamp = now.toISOString().replace(/[:.]/g,"-");
+  const safeLast = (last||"NA").replace(/[\\/:*?"<>|]/g,"_");
+  const safeFirst = (first||"NA").replace(/[\\/:*?"<>|]/g,"_");
 
-  const payload = {
+  return {
     lastName: last,
     firstName: first,
     empCode: code,
@@ -778,32 +804,55 @@ async function submitToForms(){
     correctCount: corr+"/"+S.questions.length,
     answers: answerDetail,
     pdfBase64: pdfBase64,
-    fileName: "HSE_"+last+"_"+first+"_"+now.toISOString().slice(0,10)+".pdf"
+    fileName: "HSE_"+safeLast+"_"+safeFirst+"_"+code+"_"+stamp+".pdf"
   };
+}
 
-  try {
-    console.log("Sending to Power Automate...", POWER_AUTOMATE_URL);
-    const res = await fetch(POWER_AUTOMATE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    console.log("Power Automate response:", res.status, res.statusText);
-    if(res.status===200 || res.status===202 || res.ok) {
-      fs.className="status-box ok";
-      fm.textContent="✓ SharePoint-д амжилттай хадгалагдлаа!";
+async function postToPowerAutomate(payload){
+  const res = await fetch(POWER_AUTOMATE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if(res.status===200 || res.status===202 || res.ok) return;
+  const body = await res.text().catch(()=>"");
+  throw new Error("HTTP "+res.status+(body?" — "+body.slice(0,120):""));
+}
+
+async function submitToForms(){
+  if(S._submitting) return;
+  S._submitting = true;
+  setSubmitUI("pending", '<div class="spin" style="flex-shrink:0"></div> SharePoint-д хадгалж байна...');
+
+  let lastErr = null;
+  for(let attempt=1; attempt<=SUBMIT_MAX_ATTEMPTS; attempt++){
+    try{
+      if(attempt>1){
+        setSubmitUI("pending", '<div class="spin" style="flex-shrink:0"></div> Дахин оролдож байна ('+attempt+'/'+SUBMIT_MAX_ATTEMPTS+')...');
+        await sleep(1200*(attempt-1));
+      }
+      const payload = await buildSubmitPayload();
+      await postToPowerAutomate(payload);
+      setSubmitUI("ok", "✓ SharePoint-д амжилттай хадгалагдлаа!");
       toast("✓ Хадгалагдлаа","ok");
-    } else {
-      const body = await res.text().catch(()=>"");
-      console.error("Power Automate error body:", body);
-      throw new Error("HTTP "+res.status+(body?" — "+body.slice(0,120):""));
+      S._submitting = false;
+      S._saved = true;
+      return;
+    }catch(e){
+      lastErr = e;
+      console.error("SharePoint submit attempt "+attempt+" failed:", e);
     }
-  } catch(e) {
-    console.error("Power Automate fetch error:", e);
-    fs.className="status-box err";
-    fm.innerHTML="⚠ Power Automate алдаа: <b>"+e.message+"</b><br><small>Browser Console (F12) дээр дэлгэрэнгүй харна уу.</small>";
-    toast("⚠ Алдаа гарлаа","err");
   }
+
+  S._submitting = false;
+  const msg = (lastErr && lastErr.message) ? lastErr.message : "Unknown error";
+  setSubmitUI("err", "⚠ SharePoint-д хадгалагдаагүй: <b>"+msg+"</b><br><small>Доорх «Дахин илгээх» товчийг дарна уу.</small>");
+  toast("⚠ Хадгалагдаагүй — дахин илгээнэ үү","err");
+}
+
+function retrySubmit(){
+  if(S._submitting) return;
+  submitToForms();
 }
 
 // ═══════════════════════════════════════════
@@ -909,9 +958,9 @@ async function buildPDF(){
   const code  = document.getElementById("empCode").value.trim();
   const comp  = document.getElementById("company").value;
   const now   = new Date();
-  const pct   = Math.round(S.score/S.total*100);
+  const pct   = S.total ? Math.round(S.score/S.total*100) : 0;
   const corr  = S.questions.filter((q,i)=>S.answers[i]===q.ans).length;
-  const examLabel = EXAMS[S.examKey]?.label || "";
+  const examLabel = ((LANG==="en"?EN_EXAMS:EXAMS)[S.examKey]||{}).label || "";
   const container = document.createElement("div");
   container.style.cssText = "position:fixed;left:-9999px;top:0;z-index:-1;";
   container.innerHTML = buildPDFContent(last,first,code,comp,examLabel,now,pct,S.passed,corr,S.questions,S.answers,S.sig,S.examType);
@@ -922,7 +971,8 @@ async function buildPDF(){
     const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
     const W=210,H=297,imgH=(canvas.height/canvas.width)*W;
     let yPos=0;
-    while(yPos<imgH){if(yPos>0)doc.addPage();doc.addImage(canvas.toDataURL("image/jpeg",.95),"JPEG",0,-yPos,W,imgH);yPos+=H;}
+    // Slightly lower JPEG quality keeps Power Automate payloads smaller / more reliable
+    while(yPos<imgH){if(yPos>0)doc.addPage();doc.addImage(canvas.toDataURL("image/jpeg",.82),"JPEG",0,-yPos,W,imgH);yPos+=H;}
     return doc.output("blob");
   } finally { document.body.removeChild(container); }
 }
@@ -953,8 +1003,18 @@ function downloadPDF(){
 }
 
 function resetExam(){
+  if(S._submitting){
+    toast(LANG==="en"?"Please wait — still saving to SharePoint":"Түр хүлээнэ үү — SharePoint-д хадгалж байна","err");
+    return;
+  }
+  if(S.examKey && !S._saved){
+    const ok = confirm(LANG==="en"
+      ? "Result may not be saved to SharePoint yet. Start a new test anyway?"
+      : "Үр дүн SharePoint-д хадгалагдаагүй байж болно. Шинэ тест эхлүүлэх үү?");
+    if(!ok) return;
+  }
   clearInterval(S.timerIv);
-  S={examType:null,position:null,examKey:null,questions:[],answers:[],curQ:0,t0:null,t1:null,timerIv:null,sig:null,score:0,total:0,pdfBlob:null,_submitting:false};
+  S={examType:null,position:null,examKey:null,questions:[],answers:[],curQ:0,t0:null,t1:null,timerIv:null,sig:null,score:0,total:0,pdfBlob:null,_submitting:false,_saved:false};
   ["lastName","firstName","empCode"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
   const comp=document.getElementById("company"); if(comp) comp.value="";
   document.querySelectorAll(".etype").forEach(e=>e.classList.remove("sel"));
@@ -963,8 +1023,10 @@ function resetExam(){
   S.position=null;
   const sr=document.getElementById("scoreRing"); if(sr) sr.className="score-ring";
   const sp=document.getElementById("scorePct"); if(sp) sp.className="score-pct";
-  const fs=document.getElementById("formsStatus"); if(fs){ fs.className="status-box pending"; fs.classList.add("hidden"); }
-  const fm=document.getElementById("formsMsg"); if(fm) fm.innerHTML='<div class="spin"></div> Хадгалж байна...';
+  const fs=document.getElementById("formsStatus"); if(fs){ fs.className="status-box pending hidden"; }
+  const fm=document.getElementById("formsMsg"); if(fm) fm.innerHTML='<div class="spin"></div> SharePoint-д хадгалж байна...';
+  const rw=document.getElementById("retryWrap"); if(rw) rw.classList.add("hidden");
+  const btn=document.getElementById("btnReset"); if(btn){ btn.disabled=false; btn.style.opacity=""; btn.style.pointerEvents=""; }
   const od=document.getElementById("odStatus"); if(od) od.classList.add("hidden");
   prog(0);steps(0);show("step1");hide("step2");hide("step3");hide("step4");
 }
